@@ -1,6 +1,4 @@
 #include <iostream>
-#include <chrono>
-#include <thread>
 
 #ifndef EMSCRIPTEN
  #include <glad/gles2.h>
