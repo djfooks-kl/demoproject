@@ -1,0 +1,4 @@
+build
+build_web
+*.sublime-project
+*.sublime-workspace
