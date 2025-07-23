@@ -20,7 +20,10 @@ if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
     target_link_options(project_compiler_flags INTERFACE
         -sUSE_WEBGL2=1
-        -sUSE_GLFW=3)
+        -sUSE_GLFW=3
+        -sALLOW_MEMORY_GROWTH=1)
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    configure_file(scripts/server.sh.in server.sh)
 else()
     list(APPEND cpp_files 3rdParty/glad/src/gles2.c)
     include_directories(3rdParty/glad/include)
