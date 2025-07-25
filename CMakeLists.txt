@@ -13,9 +13,13 @@ target_compile_options(project_compiler_flags INTERFACE
     "$<${msvc_cxx}:$<BUILD_INTERFACE:-W4>>"
 )
 
-set(cpp_files
+set(source_files
     src/main.cpp
-    src/BaseApp.cpp)
+    src/BaseApp.cpp
+    src/BaseApp.h
+    src/Demo.cpp
+    src/Demo.h
+    src/GLFWLib.h)
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
@@ -25,21 +29,23 @@ if (EMSCRIPTEN)
         -sALLOW_MEMORY_GROWTH=1)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     configure_file(scripts/server.sh.in server.sh)
-    list(APPEND cpp_files src/WebApp.cpp)
+    list(APPEND source_files
+        src/WebApp.cpp
+        src/WebApp.h)
 else()
-    list(APPEND cpp_files src/WindowApp.cpp)
-    list(APPEND cpp_files 3rdParty/glad/src/gles2.c)
-    include_directories(3rdParty/glad/include)
+    list(APPEND source_files
+        src/WindowApp.cpp
+        src/WindowApp.h
+        3rdParty/glad/src/gles2.c)
     add_subdirectory(3rdParty/glfw-3.4)
 endif()
 
-include_directories(src)
-
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT EmImEntGL)
 
-add_executable(EmImEntGL ${cpp_files})
+add_executable(EmImEntGL ${source_files})
 
 if (NOT EMSCRIPTEN)
+    target_include_directories(EmImEntGL PRIVATE 3rdParty/glad/include)
     target_link_libraries(EmImEntGL PRIVATE glfw ${GLFW_LIBRARIES})
 endif()
 

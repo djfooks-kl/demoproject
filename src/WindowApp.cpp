@@ -15,6 +15,12 @@ WindowApp::WindowApp()
 
 bool WindowApp::Init()
 {
+	if (!gladLoadGLES2(glfwGetProcAddress))
+	{
+		std::cerr << "Failed to initialize GLAD" << std::endl;
+		return false;
+	}
+
 	glfwSwapInterval(1);
     return true;
 }

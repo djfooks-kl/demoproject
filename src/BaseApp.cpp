@@ -25,15 +25,18 @@ namespace
 
 void BaseApp::Update()
 {
+	const double time = glfwGetTime();
+	const float deltaTime = static_cast<float>(time - m_LastFrame);
+	m_LastFrame = time;
 	glfwPollEvents();
+	m_Demo.Update(time, deltaTime);
 }
 
 bool BaseApp::Run()
 {
-	Init();
 	if (!glfwInit())
 	{
-		std::cout << "Initialization failed\n";
+		std::cout << "GLFW Initialization failed\n";
 		return false;
 	}
 
@@ -49,7 +52,18 @@ bool BaseApp::Run()
 	}
 
 	glfwMakeContextCurrent(window);
+
+	if (!Init())
+	{
+		std::cout << "Initialization failed\n";
+		return false;
+	}
+
 	glfwSetKeyCallback(window, key_callback);
+	m_LastFrame = glfwGetTime();
+
+	m_Demo.Init();
+
 	RunInternal(window);
 	glfwDestroyWindow(window);
 	glfwTerminate();
