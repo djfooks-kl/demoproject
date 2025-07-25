@@ -14,7 +14,8 @@ target_compile_options(project_compiler_flags INTERFACE
 )
 
 set(cpp_files
-    main.cpp)
+    src/main.cpp
+    src/BaseApp.cpp)
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
@@ -24,11 +25,15 @@ if (EMSCRIPTEN)
         -sALLOW_MEMORY_GROWTH=1)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     configure_file(scripts/server.sh.in server.sh)
+    list(APPEND cpp_files src/WebApp.cpp)
 else()
+    list(APPEND cpp_files src/WindowApp.cpp)
     list(APPEND cpp_files 3rdParty/glad/src/gles2.c)
     include_directories(3rdParty/glad/include)
     add_subdirectory(3rdParty/glfw-3.4)
 endif()
+
+include_directories(src)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT EmImEntGL)
 
