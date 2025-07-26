@@ -23,21 +23,23 @@ set(source_files
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
+    list(APPEND source_files
+        src/WebApp.cpp
+        src/WebApp.h)
     target_link_options(project_compiler_flags INTERFACE
         -sUSE_WEBGL2=1
         -sUSE_GLFW=3
         -sALLOW_MEMORY_GROWTH=1)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     configure_file(scripts/server.sh.in server.sh)
-    list(APPEND source_files
-        src/WebApp.cpp
-        src/WebApp.h)
 else()
     list(APPEND source_files
         src/WindowApp.cpp
         src/WindowApp.h
         3rdParty/glad/src/gles2.c)
-    add_subdirectory(3rdParty/glfw-3.4)
+    set(glfw_dir 3rdParty/glfw-3.4)
+    set(glfw_include_dir ${glfw_dir}/include)
+    add_subdirectory(${glfw_dir})
 endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT EmImEntGL)
@@ -46,8 +48,13 @@ add_executable(EmImEntGL ${source_files})
 
 if (NOT EMSCRIPTEN)
     target_include_directories(EmImEntGL PRIVATE 3rdParty/glad/include)
+    target_include_directories(EmImEntGL PRIVATE ${glfw_include_dir})
     target_link_libraries(EmImEntGL PRIVATE glfw ${GLFW_LIBRARIES})
 endif()
+
+add_subdirectory(3rdParty/imgui-1.92.1)
+target_include_directories(EmImEntGL PRIVATE 3rdParty/imgui-1.92.1)
+target_link_libraries(EmImEntGL PRIVATE ImGui)
 
 target_compile_definitions(EmImEntGL PRIVATE
     "$<$<COMPILE_LANG_AND_ID:CXX,Emscripten>:EMSCRIPTEN_BUILD>"

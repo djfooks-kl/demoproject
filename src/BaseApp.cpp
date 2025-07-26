@@ -4,6 +4,10 @@
 #include <chrono>
 #include <iostream>
 
+#include <ImGui/backends/imgui_impl_glfw.h>
+#include <ImGui/backends/imgui_impl_opengl3.h>
+#include <ImGui/imgui.h>
+
 #include "GLFWLib.h"
 
 namespace
@@ -28,8 +32,26 @@ void BaseApp::Update()
 	const double time = glfwGetTime();
 	const float deltaTime = static_cast<float>(time - m_LastFrame);
 	m_LastFrame = time;
+
 	glfwPollEvents();
+
+	ImGui_ImplGlfw_NewFrame();
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui::NewFrame();
+
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("ImGui menu"))
+		{
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+
 	m_Demo.Update(time, deltaTime);
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 bool BaseApp::Run()
@@ -59,12 +81,18 @@ bool BaseApp::Run()
 		return false;
 	}
 
+	ImGui::CreateContext();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+
 	glfwSetKeyCallback(window, key_callback);
 	m_LastFrame = glfwGetTime();
 
 	m_Demo.Init();
 
 	RunInternal(window);
+
+	ImGui::DestroyContext();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return true;
