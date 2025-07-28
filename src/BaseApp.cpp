@@ -39,15 +39,6 @@ void BaseApp::Update()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
 
-	if (ImGui::BeginMainMenuBar())
-	{
-		if (ImGui::BeginMenu("ImGui menu"))
-		{
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-	}
-
 	m_Demo.Update(time, deltaTime);
 
 	ImGui::Render();
@@ -84,6 +75,7 @@ bool BaseApp::Run()
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
+	ImGui::GetStyle().FontScaleDpi = 2.f;
 
 	glfwSetKeyCallback(window, key_callback);
 	m_LastFrame = glfwGetTime();
