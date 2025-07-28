@@ -19,6 +19,9 @@ set(source_files
     src/BaseApp.h
     src/Demo.cpp
     src/Demo.h
+    src/DemoSystem.cpp
+    src/DemoSystem.h
+    src/DemoColorAnimationComponent.h
     src/GLFWLib.h)
 
 if (EMSCRIPTEN)
@@ -55,6 +58,9 @@ endif()
 add_subdirectory(3rdParty/imgui-1.92.1)
 target_include_directories(EmImEntGL PRIVATE 3rdParty/imgui-1.92.1)
 target_link_libraries(EmImEntGL PRIVATE ImGui)
+
+add_subdirectory(3rdParty/flecs-4.1.0)
+target_link_libraries(EmImEntGL PRIVATE flecs)
 
 target_compile_definitions(EmImEntGL PRIVATE
     "$<$<COMPILE_LANG_AND_ID:CXX,Emscripten>:EMSCRIPTEN_BUILD>"

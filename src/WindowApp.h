@@ -5,10 +5,10 @@
 class WindowApp final : public BaseApp
 {
 public:
-	WindowApp();
-	~WindowApp() override;
+    WindowApp();
+    ~WindowApp() override;
 
 private:
-	bool Init() override;
-	bool RunInternal(GLFWwindow* window) override;
+    bool Init() override;
+    bool RunInternal(GLFWwindow* window) override;
 };

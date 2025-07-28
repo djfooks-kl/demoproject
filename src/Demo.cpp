@@ -4,6 +4,8 @@
 #include <iostream>
 #include <ImGui/imgui.h>
 
+#include "DemoSystem.h"
+#include "DemoColorAnimationComponent.h"
 #include "GLFWLib.h"
 
 namespace
@@ -56,18 +58,28 @@ namespace
         return shader;
     }
 
-    void setTextureData(const double time)
+    void setTextureData(flecs::world world)
     {
-        const uint8_t animation = static_cast<uint8_t>(std::abs(static_cast<uint8_t>(time * 100.f) - 128));
-        std::array<uint8_t, 6> data = { animation, 0, 255, static_cast<uint8_t>(255 - animation), 0, 0 };
+        std::array<uint8_t, 6> data = {
+            0, 0, 255,
+            0, 255, 0 };
+
+        auto query = world.query_builder<demo::ColorAnimationComponent>();
+        query.each([&](demo::ColorAnimationComponent& color) {
+            data[0] = color.m_R;
+            data[1] = color.m_G;
+            data[2] = color.m_B;
+        });
 
         const GLsizei height = 1;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s_TextureWidth, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
     }
 }
 
-void Demo::Update(const double time, const float /*deltaTime*/)
+void Demo::Update(const double time, const float deltaTime)
 {
+    demo_system::Update(m_World, time, deltaTime);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_Program);
@@ -79,7 +91,7 @@ void Demo::Update(const double time, const float /*deltaTime*/)
     glEnableVertexAttribArray(s_AttributeTextureIndex);
 
     glBindTexture(GL_TEXTURE_2D, m_Texture);
-    setTextureData(time);
+    setTextureData(m_World);
 
     const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 200.f;
     GLint transformUniform = glGetUniformLocation(m_Program, "transform");
@@ -118,7 +130,7 @@ void Demo::Init()
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    setTextureData(0.0);
+    setTextureData(m_World);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     const float fWidth = s_TextureWidth;

@@ -7,12 +7,12 @@
 class WebApp final : public BaseApp
 {
 public:
-	WebApp();
-	~WebApp() override;
+    WebApp();
+    ~WebApp() override;
 
-	bool Init() override;
-	bool RunInternal(GLFWwindow* window) override;
+    bool Init() override;
+    bool RunInternal(GLFWwindow* window) override;
 
 private:
-	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_WebGLContextHandle;
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_WebGLContextHandle;
 };

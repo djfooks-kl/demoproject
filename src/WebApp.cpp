@@ -6,11 +6,11 @@
 
 namespace
 {
-	void UpdateInternal(void* userData)
-	{
-		WebApp& webApp = *static_cast<WebApp*>(userData);
-		webApp.Update();
-	}
+    void UpdateInternal(void* userData)
+    {
+        WebApp& webApp = *static_cast<WebApp*>(userData);
+        webApp.Update();
+    }
 }
 
 WebApp::~WebApp()
@@ -18,7 +18,7 @@ WebApp::~WebApp()
 }
 
 WebApp::WebApp()
-	: BaseApp()
+    : BaseApp()
 {
 }
 
@@ -40,8 +40,8 @@ bool WebApp::Init()
 
 bool WebApp::RunInternal(GLFWwindow* /*window*/)
 {
-	printf("Running WebApp...\n");
-	emscripten_set_main_loop_arg(UpdateInternal, static_cast<void*>(this), 0, 1);
-	emscripten_webgl_destroy_context(m_WebGLContextHandle);
-	return true;
+    printf("Running WebApp...\n");
+    emscripten_set_main_loop_arg(UpdateInternal, static_cast<void*>(this), 0, 1);
+    emscripten_webgl_destroy_context(m_WebGLContextHandle);
+    return true;
 }

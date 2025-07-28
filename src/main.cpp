@@ -7,12 +7,12 @@
 int main()
 {
 #ifdef EMSCRIPTEN
-	BaseApp* app = new WebApp();
+    BaseApp* app = new WebApp();
 #else
-	BaseApp* app = new WindowApp();
+    BaseApp* app = new WindowApp();
 #endif
-	const bool result = app->Run();
-	delete app;
+    const bool result = app->Run();
+    delete app;
 
-	return result ? 1 : 0;
+    return result ? 1 : 0;
 }
