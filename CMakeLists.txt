@@ -45,6 +45,14 @@ else()
     set(glfw_dir 3rdParty/glfw-3.4)
     set(glfw_include_dir ${glfw_dir}/include)
     add_subdirectory(${glfw_dir})
+
+    add_subdirectory(3rdParty/Catch2)
+    add_executable(tests
+        src/ut/test.cpp)
+    target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+
+    include(Catch)
+    catch_discover_tests(tests)
 endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProject)
