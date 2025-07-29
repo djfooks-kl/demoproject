@@ -64,8 +64,8 @@ namespace
             0, 0, 255,
             0, 255, 0 };
 
-        auto query = world.query_builder<demo::ColorAnimationComponent>();
-        query.each([&](demo::ColorAnimationComponent& color) {
+        auto query = world.query_builder<const demo::ColorAnimationComponent>();
+        query.each([&](const demo::ColorAnimationComponent& color) {
             data[0] = color.m_R;
             data[1] = color.m_G;
             data[2] = color.m_B;
