@@ -14,7 +14,6 @@ target_compile_options(project_compiler_flags INTERFACE
 )
 
 set(source_files
-    src/main.cpp
     src/BaseApp.cpp
     src/BaseApp.h
     src/Demo.cpp
@@ -45,37 +44,44 @@ else()
     set(glfw_dir 3rdParty/glfw-3.4)
     set(glfw_include_dir ${glfw_dir}/include)
     add_subdirectory(${glfw_dir})
+endif()
 
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProjectLib)
+
+add_library(DemoProjectLib STATIC ${source_files})
+target_include_directories(DemoProjectLib PUBLIC src)
+
+add_executable(DemoProject src/main.cpp)
+target_link_libraries(DemoProject PUBLIC DemoProjectLib)
+
+if (NOT EMSCRIPTEN)
+    target_include_directories(DemoProjectLib PUBLIC 3rdParty/glad/include)
+    target_include_directories(DemoProjectLib PUBLIC ${glfw_include_dir})
+    target_link_libraries(DemoProjectLib PUBLIC glfw ${GLFW_LIBRARIES})
+endif()
+
+add_subdirectory(3rdParty/imgui-1.92.1)
+target_include_directories(DemoProjectLib PUBLIC 3rdParty/imgui-1.92.1)
+target_link_libraries(DemoProjectLib PUBLIC ImGui)
+
+add_subdirectory(3rdParty/flecs-4.1.0)
+target_link_libraries(DemoProjectLib PUBLIC flecs)
+
+target_compile_definitions(DemoProjectLib PRIVATE
+    "$<$<COMPILE_LANG_AND_ID:CXX,Emscripten>:EMSCRIPTEN_BUILD>"
+)
+
+target_link_libraries(DemoProjectLib PUBLIC project_compiler_flags)
+
+install(TARGETS DemoProjectLib DESTINATION bin)
+
+if (NOT EMSCRIPTEN)
     add_subdirectory(3rdParty/Catch2)
     add_executable(tests
         src/ut/test.cpp)
     target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+    target_link_libraries(tests PRIVATE DemoProjectLib)
 
     include(Catch)
     catch_discover_tests(tests)
 endif()
-
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProject)
-
-add_executable(DemoProject ${source_files})
-
-if (NOT EMSCRIPTEN)
-    target_include_directories(DemoProject PRIVATE 3rdParty/glad/include)
-    target_include_directories(DemoProject PRIVATE ${glfw_include_dir})
-    target_link_libraries(DemoProject PRIVATE glfw ${GLFW_LIBRARIES})
-endif()
-
-add_subdirectory(3rdParty/imgui-1.92.1)
-target_include_directories(DemoProject PRIVATE 3rdParty/imgui-1.92.1)
-target_link_libraries(DemoProject PRIVATE ImGui)
-
-add_subdirectory(3rdParty/flecs-4.1.0)
-target_link_libraries(DemoProject PRIVATE flecs)
-
-target_compile_definitions(DemoProject PRIVATE
-    "$<$<COMPILE_LANG_AND_ID:CXX,Emscripten>:EMSCRIPTEN_BUILD>"
-)
-
-target_link_libraries(DemoProject PUBLIC project_compiler_flags)
-
-install(TARGETS DemoProject DESTINATION bin)
