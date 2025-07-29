@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(EmImEntGL VERSION 1.0)
+project(DemoProject VERSION 1.0)
 
 add_library(project_compiler_flags INTERFACE)
 target_compile_features(project_compiler_flags INTERFACE cxx_std_20)
@@ -32,6 +32,8 @@ if (EMSCRIPTEN)
     target_link_options(project_compiler_flags INTERFACE
         -sUSE_WEBGL2=1
         -sUSE_GLFW=3
+        -sSTACK_SIZE=1mb
+        -sEXPORTED_RUNTIME_METHODS=cwrap
         -sALLOW_MEMORY_GROWTH=1)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     configure_file(scripts/server.sh.in server.sh)
@@ -45,27 +47,27 @@ else()
     add_subdirectory(${glfw_dir})
 endif()
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT EmImEntGL)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProject)
 
-add_executable(EmImEntGL ${source_files})
+add_executable(DemoProject ${source_files})
 
 if (NOT EMSCRIPTEN)
-    target_include_directories(EmImEntGL PRIVATE 3rdParty/glad/include)
-    target_include_directories(EmImEntGL PRIVATE ${glfw_include_dir})
-    target_link_libraries(EmImEntGL PRIVATE glfw ${GLFW_LIBRARIES})
+    target_include_directories(DemoProject PRIVATE 3rdParty/glad/include)
+    target_include_directories(DemoProject PRIVATE ${glfw_include_dir})
+    target_link_libraries(DemoProject PRIVATE glfw ${GLFW_LIBRARIES})
 endif()
 
 add_subdirectory(3rdParty/imgui-1.92.1)
-target_include_directories(EmImEntGL PRIVATE 3rdParty/imgui-1.92.1)
-target_link_libraries(EmImEntGL PRIVATE ImGui)
+target_include_directories(DemoProject PRIVATE 3rdParty/imgui-1.92.1)
+target_link_libraries(DemoProject PRIVATE ImGui)
 
 add_subdirectory(3rdParty/flecs-4.1.0)
-target_link_libraries(EmImEntGL PRIVATE flecs)
+target_link_libraries(DemoProject PRIVATE flecs)
 
-target_compile_definitions(EmImEntGL PRIVATE
+target_compile_definitions(DemoProject PRIVATE
     "$<$<COMPILE_LANG_AND_ID:CXX,Emscripten>:EMSCRIPTEN_BUILD>"
 )
 
-target_link_libraries(EmImEntGL PUBLIC project_compiler_flags)
+target_link_libraries(DemoProject PUBLIC project_compiler_flags)
 
-install(TARGETS EmImEntGL DESTINATION bin)
+install(TARGETS DemoProject DESTINATION bin)
