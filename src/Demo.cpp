@@ -58,7 +58,7 @@ namespace
         return shader;
     }
 
-    void setTextureData(flecs::world world)
+    void setTextureData(const flecs::world& world)
     {
         std::array<uint8_t, 6> data = {
             0, 0, 255,
