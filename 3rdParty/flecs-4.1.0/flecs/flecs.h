@@ -28931,13 +28931,17 @@ struct type_impl {
         s_allow_tag = allow_tag;
         s_size = sizeof(T);
         s_alignment = alignof(T);
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4127 )
+#endif
         if (is_empty<T>::value && allow_tag) {
             s_size = 0;
             s_alignment = 0;
         }
+#ifdef _MSC_VER
 #pragma warning( pop )
+#endif
     }
 
     static void init_builtin(
