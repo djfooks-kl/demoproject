@@ -75,7 +75,7 @@ bool BaseApp::Run()
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
-    ImGui::GetStyle().FontScaleDpi = 2.f;
+    ImGui::GetStyle().FontScaleDpi = 1.5f;
 
     glfwSetKeyCallback(window, key_callback);
     m_LastFrame = glfwGetTime();

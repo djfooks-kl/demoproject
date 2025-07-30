@@ -16,4 +16,6 @@ private:
     GLuint m_Program;
     GLuint m_VBO;
     GLuint m_Texture;
+
+    bool m_ContextMenuOpen = false;
 };

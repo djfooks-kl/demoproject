@@ -103,9 +103,23 @@ void Demo::Update(const double time, const float deltaTime)
     {
         if (ImGui::BeginMenu("ImGui menu"))
         {
+            ImGui::MenuItem("Hello");
+            ImGui::MenuItem("World");
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
+    }
+
+    const bool clickWindow = ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::GetIO().WantCaptureMouse;
+    if (clickWindow || m_ContextMenuOpen)
+    {
+        m_ContextMenuOpen = ImGui::BeginPopupContextVoid(nullptr, ImGuiPopupFlags_MouseButtonLeft);
+        if (m_ContextMenuOpen)
+        {
+            ImGui::MenuItem("Hello");
+            ImGui::MenuItem("Popup");
+            ImGui::EndPopup();
+        }
     }
 }
 
