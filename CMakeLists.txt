@@ -81,8 +81,6 @@ target_compile_definitions(DemoProjectLib PRIVATE
 
 target_link_libraries(DemoProjectLib PUBLIC project_compiler_flags)
 
-install(TARGETS DemoProjectLib DESTINATION bin)
-
 if (NOT EMSCRIPTEN)
     add_subdirectory(3rdParty/Catch2)
     add_executable(tests
