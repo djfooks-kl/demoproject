@@ -2,6 +2,8 @@
 
 #include <array>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <ImGui/imgui.h>
 
 #include "DemoSystem.h"
@@ -13,47 +15,32 @@ namespace
     constexpr int s_TextureWidth = 2;
     constexpr GLuint s_AttributePosition = 0;
     constexpr GLuint s_AttributeTextureIndex = 1;
-    const char* vertexShaderStr = R"(#version 300 es
-        precision mediump float;
 
-        layout (location = 0) in vec2 position;
-        layout (location = 1) in float inTextureIndex;
-        out float textureIndex;
-
-        uniform vec2 transform;
-
-        void main() {
-            gl_Position = vec4(position + transform, 0.0, 1.0);
-            textureIndex = inTextureIndex;
+    GLuint compile_shader(GLenum type, const char* name, const char* path)
+    {
+        std::ifstream fileStream(path);
+        if (fileStream.fail())
+        {
+            printf("Error could not read file \"%s\"\n", path);
+            return 0;
         }
-    )";
+        std::stringstream buffer;
+        buffer << fileStream.rdbuf();
+        std::string string = buffer.str();
+        const char* cstring = string.c_str();
+        const GLint cstrLength = static_cast<GLint>(string.length());
 
-    const char* fragmentShaderStr = R"(#version 300 es
-        precision mediump float;
-
-        in float textureIndex;
-        out vec4 FragColor;
-
-        uniform sampler2D ourTexture;
-
-        void main() {
-            vec4 color = texture(ourTexture, vec2(textureIndex, 0.0));
-            FragColor = color;
-        }
-    )";
-
-    GLuint compile_shader(GLenum type, const char* name, const char* src) {
         GLuint shader = glCreateShader(type);
-        glShaderSource(shader, 1, &src, NULL);
+        glShaderSource(shader, 1, &cstring, &cstrLength);
         glCompileShader(shader);
         GLint compiled;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
         if (!compiled)
         {
-            std::array<char, 4096> buffer;
+            std::array<char, 4096> infoBuffer;
             GLsizei length;
-            glGetShaderInfoLog(shader, static_cast<GLsizei>(buffer.size()), &length, buffer.data());
-            printf("Error compiling shader \"%s\": %s\n", name, buffer.data());
+            glGetShaderInfoLog(shader, static_cast<GLsizei>(infoBuffer.size()), &length, infoBuffer.data());
+            printf("Error compiling shader \"%s\": %s\n", name, infoBuffer.data());
         }
         return shader;
     }
@@ -125,8 +112,8 @@ void Demo::Update(const double time, const float deltaTime)
 
 void Demo::Init()
 {
-    GLuint vs = compile_shader(GL_VERTEX_SHADER, "vertex", vertexShaderStr);
-    GLuint fs = compile_shader(GL_FRAGMENT_SHADER, "fragment", fragmentShaderStr);
+    GLuint vs = compile_shader(GL_VERTEX_SHADER, "vertex", DATA_DIR "/vertex.glsl");
+    GLuint fs = compile_shader(GL_FRAGMENT_SHADER, "fragment", DATA_DIR "/fragment.glsl");
     m_Program = glCreateProgram();
     glAttachShader(m_Program, vs);
     glAttachShader(m_Program, fs);

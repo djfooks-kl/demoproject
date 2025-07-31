@@ -28,12 +28,14 @@ if (EMSCRIPTEN)
     list(APPEND source_files
         src/WebApp.cpp
         src/WebApp.h)
+
     target_link_options(project_compiler_flags INTERFACE
         -sUSE_WEBGL2=1
         -sUSE_GLFW=3
         -sSTACK_SIZE=1mb
         -sEXPORTED_RUNTIME_METHODS=cwrap
-        -sALLOW_MEMORY_GROWTH=1)
+        -sALLOW_MEMORY_GROWTH=1
+        --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/data@./data)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
     configure_file(scripts/server.sh.in server.sh)
 else()
@@ -50,6 +52,12 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT D
 
 add_library(DemoProjectLib STATIC ${source_files})
 target_include_directories(DemoProjectLib PUBLIC src)
+
+if (EMSCRIPTEN)
+    target_compile_definitions(DemoProjectLib PRIVATE DATA_DIR="./data/")
+else()
+    target_compile_definitions(DemoProjectLib PRIVATE DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/")
+endif()
 
 add_executable(DemoProject src/main.cpp)
 target_link_libraries(DemoProject PUBLIC DemoProjectLib)
