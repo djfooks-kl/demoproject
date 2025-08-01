@@ -41,6 +41,7 @@ namespace
             GLsizei length;
             glGetShaderInfoLog(shader, static_cast<GLsizei>(infoBuffer.size()), &length, infoBuffer.data());
             printf("Error compiling shader \"%s\": %s\n", name, infoBuffer.data());
+            printf("%s\n", cstring);
         }
         return shader;
     }
