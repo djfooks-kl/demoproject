@@ -48,7 +48,7 @@ else()
     add_subdirectory(${glfw_dir})
 endif()
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProjectLib)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT DemoProject)
 
 add_library(DemoProjectLib STATIC ${source_files})
 target_include_directories(DemoProjectLib PUBLIC src)
