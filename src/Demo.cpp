@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <ImGui/imgui.h>
+#include <glm/vec2.hpp>
 
 #include "DemoSystem.h"
 #include "DemoColorAnimationComponent.h"
@@ -83,7 +84,8 @@ void Demo::Update(const double time, const float deltaTime)
 
     const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 200.f;
     GLint transformUniform = glGetUniformLocation(m_Program, "transform");
-    glUniform2f(transformUniform, 0, animation);
+    glm::vec2 transformVec(0.f, animation);
+    glUniform2f(transformUniform, transformVec.x, transformVec.y);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

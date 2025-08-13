@@ -9,6 +9,7 @@ This means you can still test and debug the game in visual studio but can also a
 
 Includes some libraries to get the ball rolling:
 - GLFW (including glad with OpenGL2.0 bindings)
+- glm
 - ImGUI
 - flecs
 - catch2

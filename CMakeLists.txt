@@ -68,6 +68,9 @@ if (NOT EMSCRIPTEN)
     target_link_libraries(DemoProjectLib PUBLIC glfw ${GLFW_LIBRARIES})
 endif()
 
+add_subdirectory(3rdParty/glm-1.0.1)
+target_link_libraries(DemoProjectLib PRIVATE glm::glm-header-only)
+
 add_subdirectory(3rdParty/imgui-1.92.1)
 target_include_directories(DemoProjectLib PUBLIC 3rdParty/imgui-1.92.1)
 target_link_libraries(DemoProjectLib PUBLIC ImGui)
