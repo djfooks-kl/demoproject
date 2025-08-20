@@ -21,6 +21,4 @@ private:
     float m_FontSize = 0.5f;
     float m_Weight = 0.5f;
     glm::vec3 m_Color = glm::vec3(1.f, 1.f, 1.f);
-
-    bool m_ContextMenuOpen = false;
 };

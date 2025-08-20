@@ -12,8 +12,6 @@
 
 namespace
 {
-    constexpr int s_TextureWidth = 2;
-    constexpr int s_TextureHeight = 2;
     constexpr GLuint s_AttributePosition = 0;
     constexpr GLuint s_AttributeTextureIndex = 1;
 
