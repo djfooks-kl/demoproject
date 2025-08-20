@@ -18,10 +18,8 @@ set(source_files
     src/BaseApp.h
     src/Demo.cpp
     src/Demo.h
-    src/DemoSystem.cpp
-    src/DemoSystem.h
-    src/DemoColorAnimationComponent.h
-    src/GLFWLib.h)
+    src/GLFWLib.h
+    src/STBImage.cpp)
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
@@ -69,7 +67,9 @@ if (NOT EMSCRIPTEN)
 endif()
 
 add_subdirectory(3rdParty/glm-1.0.1)
-target_link_libraries(DemoProjectLib PRIVATE glm::glm-header-only)
+target_link_libraries(DemoProjectLib PUBLIC glm::glm-header-only)
+
+target_include_directories(DemoProjectLib PUBLIC 3rdParty/stb)
 
 add_subdirectory(3rdParty/imgui-1.92.1)
 target_include_directories(DemoProjectLib PUBLIC 3rdParty/imgui-1.92.1)

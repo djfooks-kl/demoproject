@@ -1,21 +1,26 @@
 #pragma once
 
-#include <flecs/flecs.h>
+#include <glm/vec3.hpp>
 
 typedef unsigned int GLuint;
 
 class Demo
 {
 public:
-	void Init();
-	void Update(double time, float deltaTime);
+    void Init();
+    void Update(double time, float deltaTime);
 
 private:
-    flecs::world m_World;
-
     GLuint m_Program;
     GLuint m_VBO;
     GLuint m_Texture;
+
+    bool m_SettingsOpen = false;
+
+    float m_Pxrange = 0.5f;
+    float m_FontSize = 0.5f;
+    float m_Weight = 0.5f;
+    glm::vec3 m_Color = glm::vec3(1.f, 1.f, 1.f);
 
     bool m_ContextMenuOpen = false;
 };

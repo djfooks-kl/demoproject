@@ -6,14 +6,14 @@
 #include <sstream>
 #include <ImGui/imgui.h>
 #include <glm/vec2.hpp>
+#include <stb/stb_image.h>
 
-#include "DemoSystem.h"
-#include "DemoColorAnimationComponent.h"
 #include "GLFWLib.h"
 
 namespace
 {
     constexpr int s_TextureWidth = 2;
+    constexpr int s_TextureHeight = 2;
     constexpr GLuint s_AttributePosition = 0;
     constexpr GLuint s_AttributeTextureIndex = 1;
 
@@ -47,69 +47,68 @@ namespace
         return shader;
     }
 
-    void setTextureData(const flecs::world& world)
+    void setTextureData()
     {
-        std::array<uint8_t, 6> data = {
-            0, 0, 255,
-            0, 255, 0 };
+        int width, height, channels;
+        unsigned char *data = stbi_load(DATA_DIR "/sourcecodepro-medium.png", &width, &height, &channels, 0);
 
-        auto query = world.query_builder<const demo::ColorAnimationComponent>();
-        query.each([&](const demo::ColorAnimationComponent& color) {
-            data[0] = color.m_R;
-            data[1] = color.m_G;
-            data[2] = color.m_B;
-        });
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-        const GLsizei height = 1;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s_TextureWidth, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+        stbi_image_free(data);
     }
 }
 
-void Demo::Update(const double time, const float deltaTime)
+void Demo::Update(const double time, const float /*deltaTime*/)
 {
-    demo_system::Update(m_World, time, deltaTime);
-
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_Program);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(s_AttributePosition);
 
-    glVertexAttribPointer(s_AttributeTextureIndex, 1, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(s_AttributeTextureIndex, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(s_AttributeTextureIndex);
 
     glBindTexture(GL_TEXTURE_2D, m_Texture);
-    setTextureData(m_World);
 
-    const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 200.f;
+    const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 500.f;
     GLint transformUniform = glGetUniformLocation(m_Program, "transform");
     glm::vec2 transformVec(0.f, animation);
     glUniform2f(transformUniform, transformVec.x, transformVec.y);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    const GLint pxrangeUniform = glGetUniformLocation(m_Program, "u_pxrange");
+    glUniform1f(pxrangeUniform, m_Pxrange);
+    const GLint fontSizeUniform = glGetUniformLocation(m_Program, "u_fontSize");
+    glUniform1f(fontSizeUniform, m_FontSize);
+    const GLint weightUniform = glGetUniformLocation(m_Program, "u_weight");
+    glUniform1f(weightUniform, m_Weight);
+    GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
+    glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("ImGui menu"))
         {
-            ImGui::MenuItem("Hello");
-            ImGui::MenuItem("World");
+            if (ImGui::MenuItem("Settings"))
+            {
+                m_SettingsOpen = true;
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
 
-    const bool clickWindow = ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::GetIO().WantCaptureMouse;
-    if (clickWindow || m_ContextMenuOpen)
+    if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
-        m_ContextMenuOpen = ImGui::BeginPopupContextVoid(nullptr, ImGuiPopupFlags_MouseButtonLeft);
-        if (m_ContextMenuOpen)
-        {
-            ImGui::MenuItem("Hello");
-            ImGui::MenuItem("Popup");
-            ImGui::EndPopup();
-        }
+        ImGui::SliderFloat("PX Range", &m_Pxrange, 0.f, 1.f);
+        ImGui::SliderFloat("Font Size", &m_FontSize, 0.f, 100.f);
+        ImGui::SliderFloat("Weight", &m_Weight, 0.f, 1.f);
+        ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
+        ImGui::End();
     }
 }
 
@@ -133,16 +132,23 @@ void Demo::Init()
 
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    setTextureData(m_World);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    setTextureData();
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    const float fWidth = s_TextureWidth;
+    float size = 0.8f;
     float vertices[] = {
-        // positions    texture index
-        0.0f,  0.5f,    0.f / fWidth,
-       -0.5f, -0.5f,    1.f / fWidth,
-        0.5f, -0.5f,    2.f / fWidth
+        // positions    texture UV
+        -size,  size,     0.f, 0.f,
+        -size,  -size,    0.f, 1.f,
+        size,   -size,    1.f, 1.f,
+
+        -size,  size,     0.f, 0.f,
+        size,   size,     1.f, 0.f,
+        size,   -size,    1.f, 1.f
     };
 
     glGenBuffers(1, &m_VBO);
