@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <string>
 
 typedef unsigned int GLuint;
 
@@ -23,4 +24,5 @@ private:
     float m_Weight = 0.5f;
     glm::vec2 m_Offset = glm::vec2(0.f, 0.f);
     glm::vec3 m_Color = glm::vec3(1.f, 1.f, 1.f);
+    std::string m_Text = "Hello world";
 };

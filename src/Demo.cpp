@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <ImGui/imgui.h>
+#include <ImGui/misc/cpp/imgui_stdlib.h>
 #include <glm/vec2.hpp>
 #include <stb/stb_image.h>
 
@@ -57,7 +58,7 @@ namespace
     }
 }
 
-void Demo::Update(const double time, const float /*deltaTime*/)
+void Demo::Update(const double /*time*/, const float /*deltaTime*/)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -105,6 +106,8 @@ void Demo::Update(const double time, const float /*deltaTime*/)
         ImGui::SliderFloat("Weight", &m_Weight, 0.f, 1.f);
         ImGui::SliderFloat2("Offset", &m_Offset.x, 0.f, 1.f);
         ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
+
+        ImGui::InputText("Text", &m_Text);
         ImGui::End();
     }
 }
