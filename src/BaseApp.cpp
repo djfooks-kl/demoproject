@@ -72,12 +72,13 @@ bool BaseApp::Run()
         return false;
     }
 
+    glfwSetKeyCallback(window, key_callback);
+
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
     ImGui::GetStyle().FontScaleDpi = 1.5f;
 
-    glfwSetKeyCallback(window, key_callback);
     m_LastFrame = glfwGetTime();
 
     m_Demo.Init();
