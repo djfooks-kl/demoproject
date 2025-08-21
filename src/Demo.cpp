@@ -75,12 +75,8 @@ void Demo::Update(const double /*time*/, const float /*deltaTime*/)
     GLint transformUniform = glGetUniformLocation(m_Program, "transform");
     glm::vec2 transformVec(m_Offset.x, m_Offset.y);
     glUniform2f(transformUniform, transformVec.x, transformVec.y);
-    const GLint pxrangeUniform = glGetUniformLocation(m_Program, "u_pxrange");
-    glUniform1f(pxrangeUniform, m_Pxrange);
     const GLint fontSizeUniform = glGetUniformLocation(m_Program, "u_fontSize");
     glUniform1f(fontSizeUniform, m_FontSize);
-    const GLint weightUniform = glGetUniformLocation(m_Program, "u_weight");
-    glUniform1f(weightUniform, m_Weight);
     GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
     glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
 
@@ -101,10 +97,8 @@ void Demo::Update(const double /*time*/, const float /*deltaTime*/)
 
     if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
-        ImGui::SliderFloat("PX Range", &m_Pxrange, 0.f, 1.f);
         ImGui::SliderFloat("Font Size", &m_FontSize, 0.f, 15.f);
-        ImGui::SliderFloat("Weight", &m_Weight, 0.f, 1.f);
-        ImGui::SliderFloat2("Offset", &m_Offset.x, 0.f, 1.f);
+        ImGui::SliderFloat2("Offset", &m_Offset.x, -1.f, 1.f);
         ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
 
         ImGui::InputText("Text", &m_Text);
