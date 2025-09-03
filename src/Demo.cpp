@@ -7,15 +7,13 @@
 #include <ImGui/imgui.h>
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 #include <glm/vec2.hpp>
-#include <stb/stb_image.h>
 
 #include "GLFWLib.h"
+#include "Font.h"
+#include "TextRenderer.h"
 
 namespace
 {
-    constexpr GLuint s_AttributePosition = 0;
-    constexpr GLuint s_AttributeTextureIndex = 1;
-
     GLuint compile_shader(GLenum type, const char* name, const char* path)
     {
         std::ifstream fileStream(path);
@@ -45,24 +43,21 @@ namespace
         }
         return shader;
     }
+}
 
-    void setTextureData()
-    {
-        int width, height, channels;
-        unsigned char *data = stbi_load(DATA_DIR "/sourcecodepro-medium.png", &width, &height, &channels, 0);
+Demo::Demo()
+{
+}
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(data);
-    }
+Demo::~Demo()
+{
 }
 
 void Demo::Update(const double /*time*/, const float /*deltaTime*/)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(m_Program);
+    /*glUseProgram(m_Program);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
     glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(s_AttributePosition);
@@ -80,7 +75,9 @@ void Demo::Update(const double /*time*/, const float /*deltaTime*/)
     GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
     glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+    m_TextRenderer->Draw();
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -102,6 +99,8 @@ void Demo::Update(const double /*time*/, const float /*deltaTime*/)
         ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
 
         ImGui::InputText("Text", &m_Text);
+        m_TextRenderer->RemoveAllStrings();
+        m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
         ImGui::End();
     }
 }
@@ -124,7 +123,13 @@ void Demo::Init()
         printf("Error linking program %s\n", buffer.data());
     }
 
-    glGenTextures(1, &m_Texture);
+    m_Font = std::make_unique<Font>();
+    m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
+
+    m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_Program);
+    m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
+
+    /*glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -147,5 +152,5 @@ void Demo::Init()
 
     glGenBuffers(1, &m_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);*/
 }

@@ -3,16 +3,25 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <string>
+#include <memory>
 
 typedef unsigned int GLuint;
+struct Font;
+struct TextRenderer;
 
 class Demo
 {
 public:
+    Demo();
+    ~Demo();
+
     void Init();
     void Update(double time, float deltaTime);
 
 private:
+    std::unique_ptr<Font> m_Font;
+    std::unique_ptr<TextRenderer> m_TextRenderer;
+
     GLuint m_Program;
     GLuint m_VBO;
     GLuint m_Texture;

@@ -23,7 +23,7 @@ namespace
 
     void error_callback(int /*error*/, const char* description)
     {
-        std::cerr << "Error: " << description << "\n";
+        std::cout << "Error: " << description << "\n";
     }
 }
 
