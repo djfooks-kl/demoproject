@@ -1,9 +1,10 @@
 #pragma once
 
+#include <flecs/flecs.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <string>
 #include <memory>
+#include <string>
 
 typedef unsigned int GLuint;
 struct Font;
@@ -21,6 +22,9 @@ public:
 private:
     std::unique_ptr<Font> m_Font;
     std::unique_ptr<TextRenderer> m_TextRenderer;
+    flecs::world m_World;
+
+    GLuint m_TextProgram;
 
     GLuint m_Program;
     GLuint m_VBO;

@@ -8,13 +8,19 @@
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 #include <glm/vec2.hpp>
 
-#include "GLFWLib.h"
+#include "DemoColorAnimationComponent.h"
+#include "DemoSystem.h"
 #include "Font.h"
+#include "GLFWLib.h"
 #include "TextRenderer.h"
 
 namespace
 {
-    GLuint compile_shader(GLenum type, const char* name, const char* path)
+    constexpr int s_TextureWidth = 2;
+    constexpr GLuint s_AttributePosition = 0;
+    constexpr GLuint s_AttributeTextureIndex = 1;
+
+    GLuint CompileShader(GLenum type, const char* name, const char* path)
     {
         std::ifstream fileStream(path);
         if (fileStream.fail())
@@ -43,6 +49,44 @@ namespace
         }
         return shader;
     }
+
+    GLuint BuildShaderProgram(const char* name, const char* vertexPath, const char* fragmentPath)
+    {
+        const GLuint vs = CompileShader(GL_VERTEX_SHADER, "vertex", vertexPath);
+        const GLuint fs = CompileShader(GL_FRAGMENT_SHADER, "fragment", fragmentPath);
+        const GLuint program = glCreateProgram();
+        glAttachShader(program, vs);
+        glAttachShader(program, fs);
+        glLinkProgram(program);
+        GLint linked;
+        glGetProgramiv(program, GL_LINK_STATUS, &linked);
+        if (!linked)
+        {
+            std::array<char, 4096> buffer;
+            GLsizei length;
+            glGetProgramInfoLog(program, static_cast<GLsizei>(buffer.size()), &length, buffer.data());
+            printf("Error linking program \"%s\":\n%s\n", name, buffer.data());
+            return 0;
+        }
+        return program;
+    }
+
+    void SetTextureData(const flecs::world& world)
+    {
+        std::array<uint8_t, 6> data = {
+            0, 0, 255,
+            0, 255, 0 };
+
+        auto query = world.query_builder<const demo::ColorAnimationComponent>();
+        query.each([&](const demo::ColorAnimationComponent& color) {
+            data[0] = color.m_R;
+            data[1] = color.m_G;
+            data[2] = color.m_B;
+        });
+
+        const GLsizei height = 1;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s_TextureWidth, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
+    }
 }
 
 Demo::Demo()
@@ -53,29 +97,29 @@ Demo::~Demo()
 {
 }
 
-void Demo::Update(const double /*time*/, const float /*deltaTime*/)
+void Demo::Update(const double time, const float deltaTime)
 {
+    demo_system::Update(m_World, time, deltaTime);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
-    /*glUseProgram(m_Program);
+    glUseProgram(m_Program);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(s_AttributePosition);
 
-    glVertexAttribPointer(s_AttributeTextureIndex, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(s_AttributeTextureIndex, 1, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(s_AttributeTextureIndex);
 
     glBindTexture(GL_TEXTURE_2D, m_Texture);
+    SetTextureData(m_World);
 
+    const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 200.f;
     GLint transformUniform = glGetUniformLocation(m_Program, "transform");
-    glm::vec2 transformVec(m_Offset.x, m_Offset.y);
+    glm::vec2 transformVec(0.f, animation);
     glUniform2f(transformUniform, transformVec.x, transformVec.y);
-    const GLint fontSizeUniform = glGetUniformLocation(m_Program, "u_fontSize");
-    glUniform1f(fontSizeUniform, m_FontSize);
-    GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
-    glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);*/
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     m_TextRenderer->Draw();
 
@@ -107,50 +151,30 @@ void Demo::Update(const double /*time*/, const float /*deltaTime*/)
 
 void Demo::Init()
 {
-    GLuint vs = compile_shader(GL_VERTEX_SHADER, "vertex", DATA_DIR "/vertex.glsl");
-    GLuint fs = compile_shader(GL_FRAGMENT_SHADER, "fragment", DATA_DIR "/fragment.glsl");
-    m_Program = glCreateProgram();
-    glAttachShader(m_Program, vs);
-    glAttachShader(m_Program, fs);
-    glLinkProgram(m_Program);
-    GLint linked;
-    glGetProgramiv(m_Program, GL_LINK_STATUS, &linked);
-    if (!linked)
-    {
-        std::array<char, 4096> buffer;
-        GLsizei length;
-        glGetProgramInfoLog(m_Program, static_cast<GLsizei>(buffer.size()), &length, buffer.data());
-        printf("Error linking program %s\n", buffer.data());
-    }
+    m_Program = BuildShaderProgram("Demo", DATA_DIR "/demovertex.glsl", DATA_DIR "/demofragment.glsl");
+    m_TextProgram = BuildShaderProgram("Text", DATA_DIR "/vertex.glsl", DATA_DIR "/fragment.glsl");
 
     m_Font = std::make_unique<Font>();
     m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
 
-    m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_Program);
+    m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_TextProgram);
     m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
 
-    /*glGenTextures(1, &m_Texture);
+    glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    setTextureData();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    SetTextureData(m_World);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    float size = 0.8f;
+    const float fWidth = s_TextureWidth;
     float vertices[] = {
-        // positions    texture UV
-        -size,  size,     0.f, 0.f,
-        -size,  -size,    0.f, 1.f,
-        size,   -size,    1.f, 1.f,
-
-        -size,  size,     0.f, 0.f,
-        size,   size,     1.f, 0.f,
-        size,   -size,    1.f, 1.f
+        // positions    texture index
+        0.0f,  0.5f,    0.f / fWidth,
+       -0.5f, -0.5f,    1.f / fWidth,
+        0.5f, -0.5f,    2.f / fWidth
     };
 
     glGenBuffers(1, &m_VBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);*/
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }

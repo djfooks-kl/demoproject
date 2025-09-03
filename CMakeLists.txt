@@ -18,6 +18,9 @@ set(source_files
     src/BaseApp.h
     src/Demo.cpp
     src/Demo.h
+    src/DemoColorAnimationComponent.h
+    src/DemoSystem.cpp
+    src/DemoSystem.h
     src/Font.cpp
     src/Font.h
     src/TextRenderer.cpp
