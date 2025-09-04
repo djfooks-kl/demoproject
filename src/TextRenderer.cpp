@@ -118,9 +118,9 @@ float TextRenderer::AddCharacter(
     m_Positions.push_back(y1);
 
     m_TextureUV.reserve(m_TextureUV.size() + 8);
+    m_TextureUV.push_back(s0);
     m_TextureUV.push_back(t0);
     m_TextureUV.push_back(s1);
-    m_TextureUV.push_back(s0);
     m_TextureUV.push_back(t0);
     m_TextureUV.push_back(s0);
     m_TextureUV.push_back(t1);
@@ -136,8 +136,8 @@ float TextRenderer::AddCharacter(
     m_Indices.push_back(i+1);
     m_Indices.push_back(i+2);
     m_Indices.push_back(i+1);
-    m_Indices.push_back(i+3);
     m_Indices.push_back(i+2);
+    m_Indices.push_back(i+3);
 
     m_BuffersDirty = true;
 
@@ -189,5 +189,5 @@ void TextRenderer::Draw()
     glUseProgram(m_Program);
     glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
     glBindVertexArray(m_VBO);
-    glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_Indices.size()), GL_UNSIGNED_INT, nullptr);
 }
