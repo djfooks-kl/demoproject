@@ -43,15 +43,15 @@ TextRenderer::~TextRenderer()
     {
         glDeleteTextures(1, &m_IndicesBuffer);
     }
+    // TODO VBO
 }
 
 void TextRenderer::AddString(const std::string& text, float size, float x, float y)
 {
-    const float scale = size / static_cast<float>(m_Font.m_Size);
     for (const char c : text)
     {
         const float xAdvance = AddCharacter(c, size, x, y);
-        x += scale * xAdvance;
+        x += xAdvance;
     }
 }
 
@@ -103,6 +103,8 @@ float TextRenderer::AddCharacter(
     const float x1 = x + scale * (shape.m_XOffset + shape.m_Width); // right
     const float y0 = y + scale * (m_Font.m_LineHeight - shape.m_YOffset - shape.m_Height); // bottom
     const float y1 = y + scale * (m_Font.m_LineHeight - shape.m_YOffset); // top
+
+
     const unsigned int i = static_cast<unsigned int>(m_Positions.size()) / s_PositionNumComponents;
 
     m_Positions.reserve(m_Positions.size() + 8);
@@ -115,16 +117,6 @@ float TextRenderer::AddCharacter(
     m_Positions.push_back(x1);
     m_Positions.push_back(y1);
 
-    m_Positions.clear();
-    m_Positions.push_back(0.f);
-    m_Positions.push_back(0.f);
-    m_Positions.push_back(1.f);
-    m_Positions.push_back(0.f);
-    m_Positions.push_back(0.f);
-    m_Positions.push_back(1.f);
-    m_Positions.push_back(1.f);
-    m_Positions.push_back(1.f);
-
     m_TextureUV.reserve(m_TextureUV.size() + 8);
     m_TextureUV.push_back(t0);
     m_TextureUV.push_back(s1);
@@ -135,17 +127,21 @@ float TextRenderer::AddCharacter(
     m_TextureUV.push_back(s1);
     m_TextureUV.push_back(t1);
 
+    //   2---3
+    //   | \ |
+    //   0---1
+    // anti-clockwise winding
     m_Indices.reserve(m_Indices.size() + 6);
     m_Indices.push_back(i+0);
     m_Indices.push_back(i+1);
     m_Indices.push_back(i+2);
     m_Indices.push_back(i+1);
-    m_Indices.push_back(i+2);
     m_Indices.push_back(i+3);
+    m_Indices.push_back(i+2);
 
     m_BuffersDirty = true;
 
-    return shape.m_XAdvance;
+    return shape.m_XAdvance * scale;
 }
 
 void TextRenderer::Draw()
@@ -155,21 +151,32 @@ void TextRenderer::Draw()
         return;
     }
 
-    glUseProgram(m_Program);
     if (m_BuffersDirty)
     {
         m_PositionsBuffer = TryCreateAndBindBuffer(GL_ARRAY_BUFFER, m_Positions, m_PositionsBuffer);
-        glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
         m_TextureUVBuffer = TryCreateAndBindBuffer(GL_ARRAY_BUFFER, m_TextureUV, m_TextureUVBuffer);
-        glVertexAttribPointer(s_AttributeTextureIndex, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
         m_IndicesBuffer = TryCreateAndBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Indices, m_IndicesBuffer);
+
+        if (m_VBO == 0)
+        {
+            glGenVertexArrays(1, &m_VBO);
+            glBindVertexArray(m_VBO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_PositionsBuffer);
+            glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(s_AttributePosition);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_TextureUVBuffer);
+            glVertexAttribPointer(s_AttributeTextureIndex, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(s_AttributeTextureIndex);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
+
+            glBindVertexArray(0);
+        }
 
         m_BuffersDirty = false;
     }
-
-    glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
 
     // GLint transformUniform = glGetUniformLocation(m_Program, "transform");
     // glm::vec2 transformVec(m_Offset.x, m_Offset.y);
@@ -179,8 +186,8 @@ void TextRenderer::Draw()
     // GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
     // glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
 
-    glEnableVertexAttribArray(s_AttributePosition);
-    glEnableVertexAttribArray(s_AttributeTextureIndex);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
-    glDrawElements(GL_TRIANGLES, 0, 6, nullptr);
+    glUseProgram(m_Program);
+    glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
+    glBindVertexArray(m_VBO);
+    glDrawElements(GL_TRIANGLES, m_Indices.size(), GL_UNSIGNED_INT, nullptr);
 }

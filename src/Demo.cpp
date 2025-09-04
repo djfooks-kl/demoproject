@@ -95,6 +95,7 @@ Demo::Demo()
 
 Demo::~Demo()
 {
+    // TODO clean up all of the GL objects!!!!!
 }
 
 void Demo::Update(const double time, const float deltaTime)
@@ -104,13 +105,7 @@ void Demo::Update(const double time, const float deltaTime)
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_Program);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(s_AttributePosition);
-
-    glVertexAttribPointer(s_AttributeTextureIndex, 1, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(s_AttributeTextureIndex);
-
+    glBindVertexArray(m_DemoVBO);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
     SetTextureData(m_World);
 
@@ -119,7 +114,7 @@ void Demo::Update(const double time, const float deltaTime)
     glm::vec2 transformVec(0.f, animation);
     glUniform2f(transformUniform, transformVec.x, transformVec.y);
 
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
     m_TextRenderer->Draw();
 
@@ -143,8 +138,8 @@ void Demo::Update(const double time, const float deltaTime)
         ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
 
         ImGui::InputText("Text", &m_Text);
-        m_TextRenderer->RemoveAllStrings();
-        m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
+        //m_TextRenderer->RemoveAllStrings();
+        //m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
         ImGui::End();
     }
 }
@@ -158,7 +153,7 @@ void Demo::Init()
     m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
 
     m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_TextProgram);
-    m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
+    m_TextRenderer->AddString(m_Text, 0.25f, -0.9f, 0.f);
 
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
@@ -166,15 +161,56 @@ void Demo::Init()
     SetTextureData(m_World);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    const float fWidth = s_TextureWidth;
-    float vertices[] = {
-        // positions    texture index
-        0.0f,  0.5f,    0.f / fWidth,
-       -0.5f, -0.5f,    1.f / fWidth,
-        0.5f, -0.5f,    2.f / fWidth
+    const float size = 0.5f;
+    float positions[] = {
+       -size, -size,
+        size, -size,
+       -size,  size,
+        size,  size,
     };
 
-    glGenBuffers(1, &m_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    const float fWidth = s_TextureWidth;
+    float textureU[] = {
+        1.f / fWidth,
+        0.f / fWidth,
+        2.f / fWidth,
+        1.f / fWidth
+    };
+
+    //   2---3
+    //   | \ |
+    //   0---1
+    // anti-clockwise winding
+    unsigned int indices[] = {
+        0,1,2,2,1,3
+    };
+
+    glGenBuffers(1, &m_PositionsBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_PositionsBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &m_TextureUBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_TextureUBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(textureU), textureU, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &m_IndicesBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &m_DemoVBO);
+    {
+        glBindVertexArray(m_DemoVBO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_PositionsBuffer);
+        glVertexAttribPointer(s_AttributePosition, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(s_AttributePosition);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_TextureUBuffer);
+        glVertexAttribPointer(s_AttributeTextureIndex, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(s_AttributeTextureIndex);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
+
+        glBindVertexArray(0);
+    }
 }

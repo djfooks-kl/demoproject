@@ -34,5 +34,6 @@ private:
     GLuint m_PositionsBuffer = 0;
     GLuint m_TextureUVBuffer = 0;
     GLuint m_IndicesBuffer = 0;
+    GLuint m_VBO = 0;
     bool m_BuffersDirty = false;
 };

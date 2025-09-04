@@ -27,7 +27,10 @@ private:
     GLuint m_TextProgram;
 
     GLuint m_Program;
-    GLuint m_VBO;
+    GLuint m_PositionsBuffer;
+    GLuint m_TextureUBuffer;
+    GLuint m_IndicesBuffer;
+    GLuint m_DemoVBO;
     GLuint m_Texture;
 
     bool m_SettingsOpen = false;
