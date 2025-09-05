@@ -36,6 +36,7 @@ if (EMSCRIPTEN)
 
     target_link_options(project_compiler_flags INTERFACE
         -sUSE_WEBGL2=1
+        -sMIN_WEBGL_VERSION=2
         -sUSE_GLFW=3
         -sSTACK_SIZE=1mb
         -sEXPORTED_RUNTIME_METHODS=cwrap

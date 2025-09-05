@@ -8,7 +8,8 @@ namespace
     int s_PositionNumComponents = 2;
 
     constexpr GLuint s_AttributePosition = 0;
-    constexpr GLuint s_AttributeTextureIndex = 1;
+    constexpr GLuint s_AttributeTextureUV = 1;
+    constexpr GLuint s_AttributeColor = 2;
 
     template<typename TDATA>
     GLuint TryCreateAndBindBuffer(const GLenum target, const std::vector<TDATA>& data, GLuint buffer)
@@ -46,11 +47,11 @@ TextRenderer::~TextRenderer()
     // TODO VBO
 }
 
-void TextRenderer::AddString(const std::string& text, float size, float x, float y)
+void TextRenderer::AddString(const std::string& text, float size, float x, float y, const glm::vec3& color)
 {
     for (const char c : text)
     {
-        const float xAdvance = AddCharacter(c, size, x, y);
+        const float xAdvance = AddCharacter(c, size, x, y, color);
         x += xAdvance;
     }
 }
@@ -59,6 +60,7 @@ void TextRenderer::RemoveAllStrings()
 {
     m_Positions.clear();
     m_TextureUV.clear();
+    m_Colors.clear();
     m_Indices.clear();
     m_BuffersDirty = true;
 }
@@ -67,7 +69,8 @@ float TextRenderer::AddCharacter(
     char c,
     float size,
     float x,
-    float y)
+    float y,
+    const glm::vec3& color)
 {
     // https://www.redblobgames.com/x/2403-distance-field-fonts/
     const auto shapeItr = m_Font.m_GlyphLayout.find(c);
@@ -96,7 +99,7 @@ float TextRenderer::AddCharacter(
      *     |         |
      *     +---------+  -- bottom of box @ 0
      *
-     * TODO: figure out where the text baseline is (doesn't seem to be 'base')
+     *
      */
     const float scale = size / m_Font.m_Size;
     const float x0 = x + scale * shape.m_XOffset; // left
@@ -127,6 +130,20 @@ float TextRenderer::AddCharacter(
     m_TextureUV.push_back(s1);
     m_TextureUV.push_back(t1);
 
+    m_Colors.reserve(m_Colors.size() + 12);
+    m_Colors.push_back(color.r);
+    m_Colors.push_back(color.g);
+    m_Colors.push_back(color.b);
+    m_Colors.push_back(color.r);
+    m_Colors.push_back(color.g);
+    m_Colors.push_back(color.b);
+    m_Colors.push_back(color.r);
+    m_Colors.push_back(color.g);
+    m_Colors.push_back(color.b);
+    m_Colors.push_back(color.r);
+    m_Colors.push_back(color.g);
+    m_Colors.push_back(color.b);
+
     //   2---3
     //   | \ |
     //   0---1
@@ -155,6 +172,7 @@ void TextRenderer::Draw()
     {
         m_PositionsBuffer = TryCreateAndBindBuffer(GL_ARRAY_BUFFER, m_Positions, m_PositionsBuffer);
         m_TextureUVBuffer = TryCreateAndBindBuffer(GL_ARRAY_BUFFER, m_TextureUV, m_TextureUVBuffer);
+        m_ColorBuffer = TryCreateAndBindBuffer(GL_ARRAY_BUFFER, m_Colors, m_ColorBuffer);
         m_IndicesBuffer = TryCreateAndBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Indices, m_IndicesBuffer);
 
         if (m_VBO == 0)
@@ -167,8 +185,12 @@ void TextRenderer::Draw()
             glEnableVertexAttribArray(s_AttributePosition);
 
             glBindBuffer(GL_ARRAY_BUFFER, m_TextureUVBuffer);
-            glVertexAttribPointer(s_AttributeTextureIndex, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(s_AttributeTextureIndex);
+            glVertexAttribPointer(s_AttributeTextureUV, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(s_AttributeTextureUV);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_ColorBuffer);
+            glVertexAttribPointer(s_AttributeColor, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(s_AttributeColor);
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
 
@@ -178,15 +200,9 @@ void TextRenderer::Draw()
         m_BuffersDirty = false;
     }
 
-    // GLint transformUniform = glGetUniformLocation(m_Program, "transform");
-    // glm::vec2 transformVec(m_Offset.x, m_Offset.y);
-    // glUniform2f(transformUniform, transformVec.x, transformVec.y);
-    // const GLint fontSizeUniform = glGetUniformLocation(m_Program, "u_fontSize");
-    // glUniform1f(fontSizeUniform, m_FontSize);
-    // GLint colorUniform = glGetUniformLocation(m_Program, "u_color");
-    // glUniform3f(colorUniform, m_Color.x, m_Color.y, m_Color.z);
-
     glUseProgram(m_Program);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
     glBindVertexArray(m_VBO);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_Indices.size()), GL_UNSIGNED_INT, nullptr);

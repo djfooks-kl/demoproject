@@ -2,13 +2,10 @@
 precision mediump float;
 
 in vec2 textureUV;
+in vec3 color;
 out vec4 FragColor;
 
 uniform sampler2D inTexture;
-
-uniform float u_pxrange;
-uniform float u_weight;
-uniform vec3 u_color;
 
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));
@@ -19,5 +16,5 @@ void main() {
     float sigDist = median(texRGB.r, texRGB.g, texRGB.b) - 0.5;
     float alpha = clamp(sigDist / fwidth(sigDist) + 0.5, 0.0, 1.0);
 
-    FragColor = vec4(vec3(1.0, 1.0, 1.0) * alpha, alpha);
+    FragColor = vec4(color, alpha);
 }

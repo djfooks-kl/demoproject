@@ -133,13 +133,17 @@ void Demo::Update(const double time, const float deltaTime)
 
     if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
-        ImGui::SliderFloat("Font Size", &m_FontSize, 0.f, 15.f);
-        ImGui::SliderFloat2("Offset", &m_Offset.x, -1.f, 1.f);
-        ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
+        bool textDirty = false;
+        textDirty |= ImGui::SliderFloat("Font Size", &m_FontSize, 0.f, 15.f);
+        textDirty |= ImGui::SliderFloat2("Text Position", &m_Position.x, -10.f * m_FontSize, 10.f * m_FontSize);
+        textDirty |= ImGui::SliderFloat3("Color", &m_Color.x, 0.f, 1.f);
+        textDirty |= ImGui::InputText("Text", &m_Text);
 
-        ImGui::InputText("Text", &m_Text);
-        //m_TextRenderer->RemoveAllStrings();
-        //m_TextRenderer->AddString(m_Text, 1.f, 0.5f, 0.5f);
+        if (textDirty)
+        {
+            m_TextRenderer->RemoveAllStrings();
+            m_TextRenderer->AddString(m_Text, m_FontSize, m_Position.x, m_Position.y, m_Color);
+        }
         ImGui::End();
     }
 }
@@ -153,7 +157,7 @@ void Demo::Init()
     m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
 
     m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_TextProgram);
-    m_TextRenderer->AddString(m_Text, 0.25f, -0.9f, 0.f);
+    m_TextRenderer->AddString(m_Text, m_FontSize, m_Position.x, m_Position.y, m_Color);
 
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
