@@ -95,7 +95,16 @@ Demo::Demo()
 
 Demo::~Demo()
 {
-    // TODO clean up all of the GL objects!!!!!
+    m_Font.reset();
+    m_TextRenderer.reset();
+
+    glDeleteProgram(m_Program);
+    glDeleteProgram(m_TextProgram);
+    glDeleteVertexArrays(1, &m_DemoVBO);
+    glDeleteBuffers(1, &m_PositionsBuffer);
+    glDeleteBuffers(1, &m_TextureUBuffer);
+    glDeleteBuffers(1, &m_IndicesBuffer);
+    glDeleteTextures(1, &m_Texture);
 }
 
 void Demo::Update(const double time, const float deltaTime)
@@ -165,7 +174,7 @@ void Demo::Init()
     SetTextureData(m_World);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    const float size = 0.5f;
+    const float size = 0.2f;
     float positions[] = {
        -size, -size,
         size, -size,

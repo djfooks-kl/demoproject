@@ -32,19 +32,10 @@ TextRenderer::TextRenderer(const Font& font, GLuint program)
 
 TextRenderer::~TextRenderer()
 {
-    if (m_PositionsBuffer)
-    {
-        glDeleteTextures(1, &m_PositionsBuffer);
-    }
-    if (m_TextureUVBuffer)
-    {
-        glDeleteTextures(1, &m_TextureUVBuffer);
-    }
-    if (m_IndicesBuffer)
-    {
-        glDeleteTextures(1, &m_IndicesBuffer);
-    }
-    // TODO VBO
+    glDeleteVertexArrays(1, &m_VBO);
+    glDeleteBuffers(1, &m_PositionsBuffer);
+    glDeleteBuffers(1, &m_TextureUVBuffer);
+    glDeleteBuffers(1, &m_IndicesBuffer);
 }
 
 void TextRenderer::AddString(const std::string& text, float size, float x, float y, const glm::vec3& color)

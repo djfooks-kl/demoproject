@@ -11,10 +11,7 @@ using json = nlohmann::json;
 
 Font::~Font()
 {
-    if (m_GLTexture)
-    {
-        glDeleteTextures(1, &m_GLTexture);
-    }
+    glDeleteTextures(1, &m_GLTexture);
 }
 
 bool Font::Load(const std::string& texturePath, const std::string& atlasPath)
