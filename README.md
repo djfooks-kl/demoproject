@@ -16,7 +16,7 @@ Includes some libraries to get the ball rolling:
 - stb_image
 - catch2
 
-Uses signed distance field font rendering with some examples taken from https://www.redblobgames.com/x/2403-distance-field-fonts/.
+Uses signed distance field font rendering with some examples taken from [redblobgames](https://www.redblobgames.com/x/2403-distance-field-fonts/).
 
 ### To build with MSVC
 
