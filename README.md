@@ -12,7 +12,11 @@ Includes some libraries to get the ball rolling:
 - glm
 - ImGUI
 - flecs
+- nlohmann-json
+- stb_image
 - catch2
+
+Uses signed distance field font rendering with some examples taken from https://www.redblobgames.com/x/2403-distance-field-fonts/.
 
 ### To build with MSVC
 
