@@ -1,8 +1,9 @@
 #pragma once
 
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/vec3.hpp>
 #include <string>
 #include <vector>
-#include <glm/vec3.hpp>
 
 typedef unsigned int GLuint;
 
@@ -13,7 +14,7 @@ struct TextRenderer
     TextRenderer(const Font& font, GLuint program);
     ~TextRenderer();
 
-    void Draw();
+    void Draw(const glm::mat4& viewProjection);
 
     void AddString(
         const std::string& text,

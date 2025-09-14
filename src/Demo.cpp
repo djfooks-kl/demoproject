@@ -7,18 +7,33 @@
 #include <ImGui/imgui.h>
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 #include <glm/vec2.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-#include "DemoColorAnimationComponent.h"
-#include "DemoSystem.h"
+#include "CameraComponent.h"
+#include "CameraInputComponent.h"
+#include "CameraInputSystem.h"
+#include "CameraSystem.h"
 #include "Font.h"
 #include "GLFWLib.h"
+#include "GlobalComponent.h"
+#include "InputComponent.h"
+#include "InputSystem.h"
 #include "TextRenderer.h"
+#include "WindowSizeComponent.h"
+#include "WindowSizeSystem.h"
 
 namespace
 {
     constexpr int s_TextureWidth = 2;
     constexpr GLuint s_AttributePosition = 0;
     constexpr GLuint s_AttributeTextureIndex = 1;
+    constexpr float s_BlueSpeed = 100.f;
+    constexpr float s_GreenSpeed = 150.f;
+
+    void WindowSizeCallback(GLFWwindow* /*window*/, int width, int height)
+    {
+        glViewport(0, 0, width, height);
+    }
 
     GLuint CompileShader(GLenum type, const char* name, const char* path)
     {
@@ -71,18 +86,11 @@ namespace
         return program;
     }
 
-    void SetTextureData(const flecs::world& world)
+    void SetTextureData(const double time)
     {
         std::array<uint8_t, 6> data = {
-            0, 0, 255,
-            0, 255, 0 };
-
-        auto query = world.query_builder<const demo::ColorAnimationComponent>();
-        query.each([&](const demo::ColorAnimationComponent& color) {
-            data[0] = color.m_R;
-            data[1] = color.m_G;
-            data[2] = color.m_B;
-        });
+            255, 0, static_cast<uint8_t>(time * s_BlueSpeed),
+            255, static_cast<uint8_t>(255.f - time * s_GreenSpeed), 0 };
 
         const GLsizei height = 1;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, s_TextureWidth, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.data());
@@ -107,25 +115,35 @@ Demo::~Demo()
     glDeleteTextures(1, &m_Texture);
 }
 
-void Demo::Update(const double time, const float deltaTime)
+void Demo::ProcessInput(GLFWwindow* /*window*/, int key, int scancode, int action, int mods)
 {
-    demo_system::Update(m_World, time, deltaTime);
+    input_system::UpdateInput(m_World, key, scancode, action, mods);
+}
+
+void Demo::Update(GLFWwindow* window, const double time, const float deltaTime)
+{
+    window_size_system::Update(m_World, window);
+    camera_input_system::Update(m_World, time, deltaTime);
+    camera_system::Update(m_World, time, deltaTime);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(m_Program);
-    glBindVertexArray(m_DemoVBO);
-    glBindTexture(GL_TEXTURE_2D, m_Texture);
-    SetTextureData(m_World);
+    m_World.query<const demo::CameraComponent>()
+        .each([&](
+            const demo::CameraComponent& camera)
+    {
+        glUseProgram(m_Program);
+        glBindVertexArray(m_DemoVBO);
+        glBindTexture(GL_TEXTURE_2D, m_Texture);
+        SetTextureData(time);
 
-    const float animation = static_cast<float>(std::abs(static_cast<uint8_t>(time * 100.f) - 128)) / 200.f;
-    GLint transformUniform = glGetUniformLocation(m_Program, "transform");
-    glm::vec2 transformVec(0.f, animation);
-    glUniform2f(transformUniform, transformVec.x, transformVec.y);
+        GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+        glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(camera.m_ViewProjection));
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-    m_TextRenderer->Draw();
+        m_TextRenderer->Draw(camera.m_ViewProjection);
+    });
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -142,6 +160,14 @@ void Demo::Update(const double time, const float deltaTime)
 
     if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
+        m_World.query<const demo::CameraComponent>()
+            .each([&](
+                const demo::CameraComponent& camera)
+        {
+            ImGui::Text("Zoom %.3f", camera.m_Zoom);
+            ImGui::Text("Pos %.3f %.3f", camera.m_Position.x, camera.m_Position.y);
+        });
+
         bool textDirty = false;
         textDirty |= ImGui::SliderFloat("Font Size", &m_FontSize, 0.f, 15.f);
         textDirty |= ImGui::SliderFloat2("Text Position", &m_Position.x, -10.f * m_FontSize, 10.f * m_FontSize);
@@ -157,8 +183,18 @@ void Demo::Update(const double time, const float deltaTime)
     }
 }
 
-void Demo::Init()
+void Demo::Init(GLFWwindow* window)
 {
+    {
+        flecs::entity globalEntity = m_World.entity();
+        globalEntity.add<demo::InputComponent>();
+        globalEntity.add<demo::WindowSizeComponent>();
+        globalEntity.add<demo::CameraInputComponent>();
+        globalEntity.add<demo::CameraComponent>();
+    }
+
+    glfwSetWindowSizeCallback(window, WindowSizeCallback);
+
     m_Program = BuildShaderProgram("Demo", DATA_DIR "/demovertex.glsl", DATA_DIR "/demofragment.glsl");
     m_TextProgram = BuildShaderProgram("Text", DATA_DIR "/vertex.glsl", DATA_DIR "/fragment.glsl");
 
@@ -171,7 +207,7 @@ void Demo::Init()
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    SetTextureData(m_World);
+    SetTextureData(0.0);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     const float size = 0.2f;

@@ -1,5 +1,7 @@
 #include "TextRenderer.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Font.h"
 #include "GLFWLib.h"
 
@@ -152,7 +154,7 @@ float TextRenderer::AddCharacter(
     return shape.m_XAdvance * scale;
 }
 
-void TextRenderer::Draw()
+void TextRenderer::Draw(const glm::mat4& viewProjection)
 {
     if (m_Positions.empty())
     {
@@ -196,5 +198,9 @@ void TextRenderer::Draw()
     glEnable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
     glBindVertexArray(m_VBO);
+
+    GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+    glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjection));
+
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_Indices.size()), GL_UNSIGNED_INT, nullptr);
 }

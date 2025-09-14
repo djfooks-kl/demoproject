@@ -7,7 +7,9 @@
 #include <string>
 
 typedef unsigned int GLuint;
+
 struct Font;
+struct GLFWwindow;
 struct TextRenderer;
 
 class Demo
@@ -16,8 +18,10 @@ public:
     Demo();
     ~Demo();
 
-    void Init();
-    void Update(double time, float deltaTime);
+    void Init(GLFWwindow* window);
+    void Update(GLFWwindow* window, double time, float deltaTime);
+
+    void ProcessInput(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 private:
     std::unique_ptr<Font> m_Font;

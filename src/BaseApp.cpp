@@ -12,19 +12,24 @@
 
 namespace
 {
-    void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
+    void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-        if (key == GLFW_KEY_W && action == GLFW_PRESS)
-            std::cout << "yay!\n";
+        BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
+        app->ProcessInput(window, key, scancode, action, mods);
     }
 
     void error_callback(int /*error*/, const char* description)
     {
         std::cout << "Error: " << description << "\n";
     }
+}
+
+void BaseApp::ProcessInput(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    m_Demo.ProcessInput(window, key, scancode, action, mods);
 }
 
 void BaseApp::Update()
@@ -39,7 +44,7 @@ void BaseApp::Update()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
 
-    m_Demo.Update(time, deltaTime);
+    m_Demo.Update(m_Window, time, deltaTime);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -58,13 +63,13 @@ bool BaseApp::Run()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
-    if (!window)
+    m_Window = glfwCreateWindow(1080, 800, "Demo Project", NULL, NULL);
+    if (!m_Window)
     {
         return false;
     }
 
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(m_Window);
 
     if (!Init())
     {
@@ -72,23 +77,25 @@ bool BaseApp::Run()
         return false;
     }
 
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetWindowUserPointer(m_Window, this);
+    glfwSetKeyCallback(m_Window, key_callback);
 
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
     ImGui_ImplOpenGL3_Init();
     ImGui::GetStyle().FontScaleDpi = 1.5f;
 
     m_LastFrame = glfwGetTime();
 
-    m_Demo.Init();
+    m_Demo.Init(m_Window);
 
-    RunInternal(window);
+    RunInternal(m_Window);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(m_Window);
+    m_Window = nullptr;
     glfwTerminate();
     return true;
 }

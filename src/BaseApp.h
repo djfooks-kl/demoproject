@@ -13,6 +13,8 @@ public:
 
     void Update();
 
+    void ProcessInput(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 private:
     virtual bool Init() = 0;
     virtual bool RunInternal(GLFWwindow* window) = 0;
@@ -20,4 +22,5 @@ private:
     double m_LastFrame = 0.0;
 
     Demo m_Demo;
+    GLFWwindow* m_Window = nullptr;
 };

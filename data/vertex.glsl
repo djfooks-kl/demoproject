@@ -7,13 +7,11 @@ layout (location = 2) in vec3 inColor;
 out vec2 textureUV;
 out vec3 color;
 
-uniform vec2 transform;
-
-uniform float u_fontSize;
+uniform mat4 viewProjection;
 
 void main()
 {
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = viewProjection * vec4(position, 0.0, 1.0);
     textureUV = inTextureUV;
     color = inColor;
 }

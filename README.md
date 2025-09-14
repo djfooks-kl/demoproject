@@ -18,10 +18,11 @@ Includes some libraries to get the ball rolling:
 
 Uses signed distance field font rendering with some examples taken from [redblobgames](https://www.redblobgames.com/x/2403-distance-field-fonts/).
 
+Has a simple ECS camera with WASD to move and QE to zoom in/out.
+
 ### To build with MSVC
 
-```
-# Start up "Developer Command Prompt for VS 2022"
+```# Start up "Developer Command Prompt for VS 2022"
 mkdir build
 cd build
 cmake ..

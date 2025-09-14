@@ -16,17 +16,26 @@ target_compile_options(project_compiler_flags INTERFACE
 set(source_files
     src/BaseApp.cpp
     src/BaseApp.h
+    src/CameraComponent.h
+    src/CameraInputComponent.h
+    src/CameraInputSystem.cpp
+    src/CameraInputSystem.h
+    src/CameraSystem.cpp
+    src/CameraSystem.h
     src/Demo.cpp
     src/Demo.h
-    src/DemoColorAnimationComponent.h
-    src/DemoSystem.cpp
-    src/DemoSystem.h
     src/Font.cpp
     src/Font.h
+    src/GLFWLib.h
+    src/InputComponent.h
+    src/InputSystem.cpp
+    src/InputSystem.h
+    src/STBImage.cpp
     src/TextRenderer.cpp
     src/TextRenderer.h
-    src/GLFWLib.h
-    src/STBImage.cpp)
+    src/WindowSizeComponent.h
+    src/WindowSizeSystem.cpp
+    src/WindowSizeSystem.h)
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
@@ -84,7 +93,7 @@ add_subdirectory(3rdParty/imgui-1.92.1)
 target_include_directories(DemoProjectLib PUBLIC 3rdParty/imgui-1.92.1)
 target_link_libraries(DemoProjectLib PUBLIC ImGui)
 
-add_subdirectory(3rdParty/flecs-4.1.0)
+add_subdirectory(3rdParty/flecs-4.1.1)
 target_link_libraries(DemoProjectLib PUBLIC flecs)
 
 target_compile_definitions(DemoProjectLib PRIVATE
