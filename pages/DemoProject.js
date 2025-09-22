@@ -27,7 +27,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmp68j799yq.js
+// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpavpu855i.js
 
   Module['expectedDataFileDownloads'] ??= 0;
   Module['expectedDataFileDownloads']++;
@@ -204,25 +204,25 @@ Module['FS_createPath']("/", "data", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/data/demofragment.glsl", "start": 0, "end": 232}, {"filename": "/data/demovertex.glsl", "start": 232, "end": 540}, {"filename": "/data/fragment.glsl", "start": 540, "end": 1016}, {"filename": "/data/sourcecodepro-medium.json", "start": 1016, "end": 34751}, {"filename": "/data/sourcecodepro-medium.png", "start": 34751, "end": 120123}, {"filename": "/data/vertex.glsl", "start": 120123, "end": 120496}], "remote_package_size": 120496});
+    loadPackage({"files": [{"filename": "/data/boxfragment.glsl", "start": 0, "end": 137}, {"filename": "/data/boxvertex.glsl", "start": 137, "end": 510}, {"filename": "/data/demofragment.glsl", "start": 510, "end": 742}, {"filename": "/data/demovertex.glsl", "start": 742, "end": 1050}, {"filename": "/data/sourcecodepro-medium.json", "start": 1050, "end": 34785}, {"filename": "/data/sourcecodepro-medium.png", "start": 34785, "end": 120157}, {"filename": "/data/textfragment.glsl", "start": 120157, "end": 120633}], "remote_package_size": 120633});
 
   })();
 
-// end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmp68j799yq.js
-// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpj93u97k_.js
+// end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpavpu855i.js
+// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpqp_4jd9e.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpj93u97k_.js
-// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpewdilayy.js
+  // end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpqp_4jd9e.js
+// include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpiwn96i8a.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpewdilayy.js
+  // end include: C:\Users\DAVID~1.FOO\AppData\Local\Temp\tmpiwn96i8a.js
 
 
 var arguments_ = [];

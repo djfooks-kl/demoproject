@@ -1,6 +1,31 @@
 #version 300 es
 precision mediump float;
 
+in vec3 color;
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(color, 1.0);
+}
+#version 300 es
+precision mediump float;
+
+layout (location = 0) in vec2 position;
+layout (location = 1) in vec2 inTextureUV;
+layout (location = 2) in vec3 inColor;
+out vec2 textureUV;
+out vec3 color;
+
+uniform mat4 viewProjection;
+
+void main()
+{
+    gl_Position = viewProjection * vec4(position, 0.0, 1.0);
+    textureUV = inTextureUV;
+    color = inColor;
+}#version 300 es
+precision mediump float;
+
 in float textureIndex;
 out vec4 FragColor;
 
@@ -24,27 +49,7 @@ void main()
 {
     gl_Position = viewProjection * vec4(position, 0.0, 1.0);
     textureIndex = inTextureIndex;
-}#version 300 es
-precision mediump float;
-
-in vec2 textureUV;
-in vec3 color;
-out vec4 FragColor;
-
-uniform sampler2D inTexture;
-
-float median(float r, float g, float b) {
-    return max(min(r, g), min(max(r, g), b));
-}
-
-void main() {
-    vec3 texRGB = texture(inTexture, textureUV).rgb;
-    float sigDist = median(texRGB.r, texRGB.g, texRGB.b) - 0.5;
-    float alpha = clamp(sigDist / fwidth(sigDist) + 0.5, 0.0, 1.0);
-
-    FragColor = vec4(color, alpha);
-}
-{
+}{
     "pages":
     [
         "SourceCodePro-Medium.png"
@@ -1864,17 +1869,20 @@ a
 •xÆ¾Å›–H$É·Â«©ðU‹ŸñÕ5« ¼|:Ñ ! R]ðM < úzdÁÿ¡6u!»-~‹D"‘H$†¸Î><‰D"‘H$¯%ÿ¤M1shÍ    IEND®B`‚#version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 position;
-layout (location = 1) in vec2 inTextureUV;
-layout (location = 2) in vec3 inColor;
-out vec2 textureUV;
-out vec3 color;
+in vec2 textureUV;
+in vec3 color;
+out vec4 FragColor;
 
-uniform mat4 viewProjection;
+uniform sampler2D inTexture;
 
-void main()
-{
-    gl_Position = viewProjection * vec4(position, 0.0, 1.0);
-    textureUV = inTextureUV;
-    color = inColor;
+float median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+}
+
+void main() {
+    vec3 texRGB = texture(inTexture, textureUV).rgb;
+    float sigDist = median(texRGB.r, texRGB.g, texRGB.b) - 0.5;
+    float alpha = clamp(sigDist / fwidth(sigDist) + 0.5, 0.0, 1.0);
+
+    FragColor = vec4(color, alpha);
 }
