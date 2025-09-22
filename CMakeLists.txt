@@ -16,6 +16,8 @@ target_compile_options(project_compiler_flags INTERFACE
 set(source_files
     src/BaseApp.cpp
     src/BaseApp.h
+    src/BoxRenderer.cpp
+    src/BoxRenderer.h
     src/CameraComponent.h
     src/CameraInputComponent.h
     src/CameraInputSystem.cpp
@@ -30,6 +32,9 @@ set(source_files
     src/InputComponent.h
     src/InputSystem.cpp
     src/InputSystem.h
+    src/MouseTrailComponent.h
+    src/MouseTrailSystem.cpp
+    src/MouseTrailSystem.h
     src/STBImage.cpp
     src/TextRenderer.cpp
     src/TextRenderer.h

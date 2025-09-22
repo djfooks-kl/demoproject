@@ -13,5 +13,8 @@ namespace demo
 		glm::mat4 m_View;
 		glm::mat4 m_Projection;
 		glm::mat4 m_ViewProjection;
+		glm::mat4 m_InvViewProjection;
+
+		glm::vec2 m_WorldMouse = { 0.f, 0.f };
 	};
 }

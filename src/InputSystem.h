@@ -7,5 +7,6 @@ namespace flecs
 
 namespace input_system
 {
-    void UpdateInput(flecs::world& world, int key, int scancode, int action, int mods);
+    void UpdateKeyInput(flecs::world& world, int key, int scancode, int action, int mods);
+    void UpdateCursorInput(flecs::world& world, double xpos, double ypos);
 }

@@ -9,6 +9,7 @@
 
 #include "CameraComponent.h"
 #include "CameraInputComponent.h"
+#include "InputComponent.h"
 #include "WindowSizeComponent.h"
 
 namespace
@@ -24,10 +25,12 @@ void camera_system::Update(flecs::world& world, const double /*time*/, const flo
 {
     auto query = world.query_builder<
         demo::CameraComponent,
+        const demo::InputComponent,
         const demo::CameraInputComponent,
         const demo::WindowSizeComponent>();
     query.each([&](
         demo::CameraComponent& camera,
+        const demo::InputComponent& input,
         const demo::CameraInputComponent& cameraInput,
         const demo::WindowSizeComponent& windowSize)
     {
@@ -53,5 +56,14 @@ void camera_system::Update(flecs::world& world, const double /*time*/, const flo
             -1.0f, 1.0f);
 
         camera.m_ViewProjection = camera.m_Projection * camera.m_View;
+        camera.m_InvViewProjection = glm::inverse(camera.m_ViewProjection); // TODO try transpose
+
+        glm::vec4 viewMouse(
+            (input.m_WindowMouse.x * 2.f) / windowSize.m_Width - 1.f,
+            1.f - (input.m_WindowMouse.y * 2.f) / windowSize.m_Height,
+            0.f,
+            1.f);
+        glm::vec4 worldMouse = camera.m_InvViewProjection * viewMouse;
+        camera.m_WorldMouse = worldMouse / worldMouse.w;
     });
 }

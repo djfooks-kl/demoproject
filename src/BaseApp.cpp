@@ -15,7 +15,13 @@ namespace
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
         BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
-        app->ProcessInput(window, key, scancode, action, mods);
+        app->ProcessKeyInput(window, key, scancode, action, mods);
+    }
+
+    void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+    {
+        BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
+        app->ProcessCursorInput(window, xpos, ypos);
     }
 
     void error_callback(int /*error*/, const char* description)
@@ -24,12 +30,17 @@ namespace
     }
 }
 
-void BaseApp::ProcessInput(GLFWwindow* window, int key, int scancode, int action, int mods)
+void BaseApp::ProcessKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-    m_Demo.ProcessInput(window, key, scancode, action, mods);
+    m_Demo.ProcessKeyInput(window, key, scancode, action, mods);
+}
+
+void BaseApp::ProcessCursorInput(GLFWwindow* window, double xpos, double ypos)
+{
+    m_Demo.ProcessCursorInput(window, xpos, ypos);
 }
 
 void BaseApp::Update()
@@ -79,11 +90,11 @@ bool BaseApp::Run()
 
     glfwSetWindowUserPointer(m_Window, this);
     glfwSetKeyCallback(m_Window, key_callback);
+    glfwSetCursorPosCallback(m_Window, cursor_position_callback);
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
     ImGui_ImplOpenGL3_Init();
-    ImGui::GetStyle().FontScaleDpi = 1.5f;
 
     m_LastFrame = glfwGetTime();
 

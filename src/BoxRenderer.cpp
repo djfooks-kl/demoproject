@@ -1,8 +1,7 @@
-#include "TextRenderer.h"
+#include "BoxRenderer.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Font.h"
 #include "GLFWLib.h"
 
 namespace
@@ -26,13 +25,12 @@ namespace
     }
 }
 
-TextRenderer::TextRenderer(const Font& font, GLuint program)
-    : m_Font(font)
-    , m_Program(program)
+BoxRenderer::BoxRenderer(GLuint program)
+    : m_Program(program)
 {
 }
 
-TextRenderer::~TextRenderer()
+BoxRenderer::~BoxRenderer()
 {
     glDeleteVertexArrays(1, &m_VBO);
     glDeleteBuffers(1, &m_PositionsBuffer);
@@ -40,68 +38,20 @@ TextRenderer::~TextRenderer()
     glDeleteBuffers(1, &m_IndicesBuffer);
 }
 
-void TextRenderer::AddString(const std::string& text, float size, float x, float y, const glm::vec3& color)
+void BoxRenderer::AddBox(float size, const glm::vec2& center, const glm::vec3& color)
 {
-    for (const char c : text)
-    {
-        const float xAdvance = AddCharacter(c, size, x, y, color);
-        x += xAdvance;
-    }
-}
-
-void TextRenderer::RemoveAllStrings()
-{
-    m_Positions.clear();
-    m_TextureUV.clear();
-    m_Colors.clear();
-    m_Indices.clear();
-    m_BuffersDirty = true;
-}
-
-float TextRenderer::AddCharacter(
-    char c,
-    float size,
-    float x,
-    float y,
-    const glm::vec3& color)
-{
-    // https://www.redblobgames.com/x/2403-distance-field-fonts/
-    const auto shapeItr = m_Font.m_GlyphLayout.find(c);
-    if (shapeItr == m_Font.m_GlyphLayout.end())
-    {
-        return 0.f;
-    }
-    const auto& shape = shapeItr->second;
-
-    const float s0 = shape.m_X / m_Font.m_ScaleW;
-    const float s1 = (shape.m_X + shape.m_Width) / m_Font.m_ScaleW;
-    const float t1 = shape.m_Y / m_Font.m_ScaleH;
-    const float t0 = (shape.m_Y + shape.m_Height) / m_Font.m_ScaleH;
-
-    /* Placement of a character within the box:
-     *
-     *     +---------+  -- top of box @ lineHeight
-     *     |         |
-     *     +---------+  -- top of glyph @ lineHeight - yoffset
-     *     |         |
-     *     |         |
-     *     |         |
-     *     |         |
-     *     |         |
-     *     +---------+  -- bottom of glyph @ lineHeight - yoffset - height
-     *     |         |
-     *     +---------+  -- bottom of box @ 0
-     *
-     *
-     */
-    const float scale = size / m_Font.m_Size;
-    const float x0 = x + scale * shape.m_XOffset; // left
-    const float x1 = x + scale * (shape.m_XOffset + shape.m_Width); // right
-    const float y0 = y + scale * (m_Font.m_LineHeight - shape.m_YOffset - shape.m_Height); // bottom
-    const float y1 = y + scale * (m_Font.m_LineHeight - shape.m_YOffset); // top
-
-
     const unsigned int i = static_cast<unsigned int>(m_Positions.size()) / s_PositionNumComponents;
+
+    const float halfSize = size * 0.5f;
+    const float x0 = center.x - halfSize;
+    const float y0 = center.y - halfSize;
+    const float x1 = center.x + halfSize;
+    const float y1 = center.y + halfSize;
+
+    const float s0 = 0.f;
+    const float t0 = 0.f;
+    const float s1 = 1.f;
+    const float t1 = 1.f;
 
     m_Positions.reserve(m_Positions.size() + 8);
     m_Positions.push_back(x0);
@@ -150,11 +100,18 @@ float TextRenderer::AddCharacter(
     m_Indices.push_back(i+3);
 
     m_BuffersDirty = true;
-
-    return shape.m_XAdvance * scale;
 }
 
-void TextRenderer::Draw(const glm::mat4& viewProjection)
+void BoxRenderer::RemoveAllBoxes()
+{
+    m_Positions.clear();
+    m_TextureUV.clear();
+    m_Colors.clear();
+    m_Indices.clear();
+    m_BuffersDirty = true;
+}
+
+void BoxRenderer::Draw(const glm::mat4& viewProjection)
 {
     if (m_Positions.empty())
     {
@@ -188,14 +145,12 @@ void TextRenderer::Draw(const glm::mat4& viewProjection)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
 
-        glBindVertexArray(0);
         m_BuffersDirty = false;
     }
 
     glUseProgram(m_Program);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
-    glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
     glBindVertexArray(m_VBO);
 
     GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");

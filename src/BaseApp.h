@@ -13,7 +13,8 @@ public:
 
     void Update();
 
-    void ProcessInput(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void ProcessKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void ProcessCursorInput(GLFWwindow* window, double xpos, double ypos);
 
 private:
     virtual bool Init() = 0;

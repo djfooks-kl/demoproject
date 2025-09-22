@@ -5,7 +5,7 @@
 #include "InputComponent.h"
 #include "GLFWLib.h"
 
-void input_system::UpdateInput(flecs::world& world, int key, int /*scancode*/, int action, int /*mods*/)
+void input_system::UpdateKeyInput(flecs::world& world, int key, int /*scancode*/, int action, int /*mods*/)
 {
     world.query_builder<demo::InputComponent>()
         .each([&](demo::InputComponent& input)
@@ -18,5 +18,14 @@ void input_system::UpdateInput(flecs::world& world, int key, int /*scancode*/, i
         {
             input.m_KeyDownMap[key] = false;
         }
+    });
+}
+
+void input_system::UpdateCursorInput(flecs::world& world, double xpos, double ypos)
+{
+    world.query_builder<demo::InputComponent>()
+        .each([&](demo::InputComponent& input)
+    {
+        input.m_WindowMouse = { xpos, ypos };
     });
 }

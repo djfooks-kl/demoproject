@@ -9,6 +9,7 @@
 #include <glm/vec2.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "BoxRenderer.h"
 #include "CameraComponent.h"
 #include "CameraInputComponent.h"
 #include "CameraInputSystem.h"
@@ -18,6 +19,8 @@
 #include "GlobalComponent.h"
 #include "InputComponent.h"
 #include "InputSystem.h"
+#include "MouseTrailSystem.h"
+#include "MouseTrailComponent.h"
 #include "TextRenderer.h"
 #include "WindowSizeComponent.h"
 #include "WindowSizeSystem.h"
@@ -30,6 +33,7 @@ namespace
     constexpr float s_BlueSpeed = 100.f;
     constexpr float s_GreenSpeed = 150.f;
 
+    // TODO move to BaseApp?
     void WindowSizeCallback(GLFWwindow* /*window*/, int width, int height)
     {
         glViewport(0, 0, width, height);
@@ -115,36 +119,18 @@ Demo::~Demo()
     glDeleteTextures(1, &m_Texture);
 }
 
-void Demo::ProcessInput(GLFWwindow* /*window*/, int key, int scancode, int action, int mods)
+void Demo::ProcessKeyInput(GLFWwindow* /*window*/, int key, int scancode, int action, int mods)
 {
-    input_system::UpdateInput(m_World, key, scancode, action, mods);
+    input_system::UpdateKeyInput(m_World, key, scancode, action, mods);
 }
 
-void Demo::Update(GLFWwindow* window, const double time, const float deltaTime)
+void Demo::ProcessCursorInput(GLFWwindow* /*window*/, double xpos, double ypos)
 {
-    window_size_system::Update(m_World, window);
-    camera_input_system::Update(m_World, time, deltaTime);
-    camera_system::Update(m_World, time, deltaTime);
+    input_system::UpdateCursorInput(m_World, xpos, ypos);
+}
 
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    m_World.query<const demo::CameraComponent>()
-        .each([&](
-            const demo::CameraComponent& camera)
-    {
-        glUseProgram(m_Program);
-        glBindVertexArray(m_DemoVBO);
-        glBindTexture(GL_TEXTURE_2D, m_Texture);
-        SetTextureData(time);
-
-        GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
-        glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(camera.m_ViewProjection));
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-        m_TextRenderer->Draw(camera.m_ViewProjection);
-    });
-
+void Demo::DrawImGui()
+{
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("ImGui menu"))
@@ -158,6 +144,8 @@ void Demo::Update(GLFWwindow* window, const double time, const float deltaTime)
         ImGui::EndMainMenuBar();
     }
 
+    // scale window to fit contents
+    ImGui::SetNextWindowSize(ImVec2{ 0.f, 0.f });
     if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
         m_World.query<const demo::CameraComponent>()
@@ -183,6 +171,58 @@ void Demo::Update(GLFWwindow* window, const double time, const float deltaTime)
     }
 }
 
+void Demo::Render(double time, float /*deltaTime*/)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    const demo::CameraComponent* camera = nullptr;
+    m_World.query<const demo::CameraComponent>()
+        .each([&](
+            const demo::CameraComponent& cameraComponent)
+    {
+        camera = &cameraComponent;
+    });
+
+    if (!camera)
+        return;
+
+    glUseProgram(m_Program);
+    glBindVertexArray(m_DemoVBO);
+    glBindTexture(GL_TEXTURE_2D, m_Texture);
+    SetTextureData(time);
+
+    GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+    glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(camera->m_ViewProjection));
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+    m_TextRenderer->Draw(camera->m_ViewProjection);
+
+    m_BoxRenderer->RemoveAllBoxes();
+    m_World.query<const demo::MouseTrailComponent>()
+        .each([&](
+            const demo::MouseTrailComponent& mouseTrail)
+    {
+        for (const demo::TrailPoint& p : mouseTrail.m_Positions)
+        {
+            m_BoxRenderer->AddBox(0.05f, p.m_Position, p.m_Color);
+        }
+    });
+    //m_BoxRenderer->AddBox(0.05f, camera->m_WorldMouse, glm::vec3(0.f, 0.f, 1.f));
+    m_BoxRenderer->Draw(camera->m_ViewProjection);
+}
+
+void Demo::Update(GLFWwindow* window, const double time, const float deltaTime)
+{
+    window_size_system::Update(m_World, window);
+    camera_input_system::Update(m_World, time, deltaTime);
+    camera_system::Update(m_World, time, deltaTime);
+    mouse_trail_system::Update(m_World, time, deltaTime);
+
+    Render(time, deltaTime);
+    DrawImGui();
+}
+
 void Demo::Init(GLFWwindow* window)
 {
     {
@@ -191,18 +231,22 @@ void Demo::Init(GLFWwindow* window)
         globalEntity.add<demo::WindowSizeComponent>();
         globalEntity.add<demo::CameraInputComponent>();
         globalEntity.add<demo::CameraComponent>();
+        globalEntity.add<demo::MouseTrailComponent>();
     }
 
     glfwSetWindowSizeCallback(window, WindowSizeCallback);
 
     m_Program = BuildShaderProgram("Demo", DATA_DIR "/demovertex.glsl", DATA_DIR "/demofragment.glsl");
-    m_TextProgram = BuildShaderProgram("Text", DATA_DIR "/vertex.glsl", DATA_DIR "/fragment.glsl");
+    m_TextProgram = BuildShaderProgram("Text", DATA_DIR "/boxvertex.glsl", DATA_DIR "/textfragment.glsl");
+    m_BoxProgram = BuildShaderProgram("Box", DATA_DIR "/boxvertex.glsl", DATA_DIR "/boxfragment.glsl");
 
     m_Font = std::make_unique<Font>();
     m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
 
     m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_TextProgram);
     m_TextRenderer->AddString(m_Text, m_FontSize, m_Position.x, m_Position.y, m_Color);
+
+    m_BoxRenderer = std::make_unique<BoxRenderer>(m_BoxProgram);
 
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);

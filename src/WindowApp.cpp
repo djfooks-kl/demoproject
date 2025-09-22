@@ -1,6 +1,7 @@
 #include "WindowApp.h"
 
 #include <iostream>
+#include <imgui.h>
 
 #include "GLFWLib.h"
 
@@ -22,12 +23,16 @@ bool WindowApp::Init()
     }
 
     glfwSwapInterval(1);
+
     return true;
 }
 
 bool WindowApp::RunInternal(GLFWwindow* window)
 {
     printf("Running WindowApp...\n");
+
+    ImGui::GetStyle().FontScaleDpi = 1.5f;
+
     while (!glfwWindowShouldClose(window))
     {
         Update();
