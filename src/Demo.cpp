@@ -148,6 +148,7 @@ void Demo::DrawImGui()
     ImGui::SetNextWindowSize(ImVec2{ 0.f, 0.f });
     if (ImGui::Begin("Settings", &m_SettingsOpen))
     {
+        ImGui::Text("WASD - Move camera, EQ - Zoom in/out");
         m_World.query<const demo::CameraComponent>()
             .each([&](
                 const demo::CameraComponent& camera)
