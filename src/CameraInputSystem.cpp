@@ -3,9 +3,9 @@
 #include <cmath>
 #include <flecs/flecs.h>
 
-#include "InputComponent.h"
 #include "CameraInputComponent.h"
-#include "GLFWLib.h"
+#include "Core/GLFWLib.h"
+#include "InputComponent.h"
 
 namespace
 {

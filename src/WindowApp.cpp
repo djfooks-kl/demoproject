@@ -3,7 +3,7 @@
 #include <iostream>
 #include <imgui.h>
 
-#include "GLFWLib.h"
+#include "Core/GLFWLib.h"
 
 WindowApp::~WindowApp()
 {

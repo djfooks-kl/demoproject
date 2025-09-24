@@ -2,8 +2,8 @@
 
 #include <flecs/flecs.h>
 
+#include "Core/GLFWLib.h"
 #include "InputComponent.h"
-#include "GLFWLib.h"
 
 void input_system::UpdateKeyInput(flecs::world& world, int key, int /*scancode*/, int action, int /*mods*/)
 {

@@ -7,9 +7,14 @@
 
 typedef unsigned int GLuint;
 
+namespace xc
+{
+    class ShaderProgram;
+}
+
 struct BoxRenderer
 {
-    BoxRenderer(GLuint program);
+    BoxRenderer(const xc::ShaderProgram& program);
     ~BoxRenderer();
 
     void Draw(const glm::mat4& viewProjection);
@@ -21,7 +26,7 @@ struct BoxRenderer
     void RemoveAllBoxes();
 
 private:
-    GLuint m_Program = 0;
+    const xc::ShaderProgram& m_Program;
 
     std::vector<float> m_Positions;
     std::vector<float> m_TextureUV;

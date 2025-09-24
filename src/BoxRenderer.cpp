@@ -2,7 +2,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "GLFWLib.h"
+#include "Core/GLFWLib.h"
+#include "Core/ShaderProgram.h"
 
 namespace
 {
@@ -25,7 +26,7 @@ namespace
     }
 }
 
-BoxRenderer::BoxRenderer(GLuint program)
+BoxRenderer::BoxRenderer(const xc::ShaderProgram& program)
     : m_Program(program)
 {
 }
@@ -148,12 +149,12 @@ void BoxRenderer::Draw(const glm::mat4& viewProjection)
         m_BuffersDirty = false;
     }
 
-    glUseProgram(m_Program);
+    glUseProgram(m_Program.GetProgramId());
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glBindVertexArray(m_VBO);
 
-    GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+    GLint viewProjectionUniform = glGetUniformLocation(m_Program.GetProgramId(), "viewProjection");
     glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjection));
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_Indices.size()), GL_UNSIGNED_INT, nullptr);

@@ -2,8 +2,9 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Font.h"
-#include "GLFWLib.h"
+#include "Core/Font.h"
+#include "Core/GLFWLib.h"
+#include "Core/ShaderProgram.h"
 
 namespace
 {
@@ -26,7 +27,7 @@ namespace
     }
 }
 
-TextRenderer::TextRenderer(const Font& font, GLuint program)
+TextRenderer::TextRenderer(const xc::Font& font, const xc::ShaderProgram& program)
     : m_Font(font)
     , m_Program(program)
 {
@@ -192,13 +193,13 @@ void TextRenderer::Draw(const glm::mat4& viewProjection)
         m_BuffersDirty = false;
     }
 
-    glUseProgram(m_Program);
+    glUseProgram(m_Program.GetProgramId());
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, m_Font.m_GLTexture);
     glBindVertexArray(m_VBO);
 
-    GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+    GLint viewProjectionUniform = glGetUniformLocation(m_Program.GetProgramId(), "viewProjection");
     glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(viewProjection));
 
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_Indices.size()), GL_UNSIGNED_INT, nullptr);

@@ -1,6 +1,6 @@
-#include "Font.h"
+#include "Core/Font.h"
 
-#include "GLFWLib.h"
+#include "Core/GLFWLib.h"
 
 #include <fstream>
 #include <iostream>
@@ -9,19 +9,19 @@
 
 using json = nlohmann::json;
 
-Font::~Font()
+xc::Font::~Font()
 {
     glDeleteTextures(1, &m_GLTexture);
 }
 
-bool Font::Load(const std::string& texturePath, const std::string& atlasPath)
+bool xc::Font::Load(const std::string& texturePath, const std::string& atlasPath)
 {
     m_TexturePath = texturePath;
     m_AtlasPath = atlasPath;
     return LoadTexture() && LoadAtlas();
 }
 
-bool Font::LoadTexture()
+bool xc::Font::LoadTexture()
 {
     glGenTextures(1, &m_GLTexture);
     glBindTexture(GL_TEXTURE_2D, m_GLTexture);
@@ -40,7 +40,7 @@ bool Font::LoadTexture()
     return true;
 }
 
-bool Font::LoadAtlas()
+bool xc::Font::LoadAtlas()
 {
     std::ifstream fileStream(m_AtlasPath);
     if (fileStream.fail())

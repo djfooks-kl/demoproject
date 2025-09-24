@@ -13,7 +13,21 @@ target_compile_options(project_compiler_flags INTERFACE
     "$<${msvc_cxx}:$<BUILD_INTERFACE:-W4>>"
 )
 
+set(core_files
+
+    src/Core/Font.cpp
+    src/Core/Font.h
+    src/Core/GLFWLib.h
+    src/Core/Result.h
+    src/Core/ShaderHelpers.cpp
+    src/Core/ShaderHelpers.h
+    src/Core/ShaderProgram.cpp
+    src/Core/ShaderProgram.h
+    src/Core/STBImage.cpp
+)
+
 set(source_files
+
     src/BaseApp.cpp
     src/BaseApp.h
     src/BoxRenderer.cpp
@@ -26,21 +40,20 @@ set(source_files
     src/CameraSystem.h
     src/Demo.cpp
     src/Demo.h
-    src/Font.cpp
-    src/Font.h
-    src/GLFWLib.h
     src/InputComponent.h
     src/InputSystem.cpp
     src/InputSystem.h
     src/MouseTrailComponent.h
     src/MouseTrailSystem.cpp
     src/MouseTrailSystem.h
-    src/STBImage.cpp
     src/TextRenderer.cpp
     src/TextRenderer.h
     src/WindowSizeComponent.h
     src/WindowSizeSystem.cpp
     src/WindowSizeSystem.h)
+
+list(APPEND source_files ${core_files})
+source_group("Core" FILES ${core_files})
 
 if (EMSCRIPTEN)
     message(STATUS "This is an Emscripten build.")
@@ -110,7 +123,8 @@ target_link_libraries(DemoProjectLib PUBLIC project_compiler_flags)
 if (NOT EMSCRIPTEN)
     add_subdirectory(3rdParty/Catch2)
     add_executable(tests
-        src/ut/test.cpp)
+        src/ut/ResultTest.cpp
+        src/ut/ShadersTest.cpp)
     target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
     target_link_libraries(tests PRIVATE DemoProjectLib)
 

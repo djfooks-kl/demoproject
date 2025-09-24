@@ -6,10 +6,16 @@
 #include <memory>
 #include <string>
 
+namespace xc
+{
+    struct Font;
+
+    class ShaderProgram;
+}
+
 typedef unsigned int GLuint;
 
 struct BoxRenderer;
-struct Font;
 struct GLFWwindow;
 struct TextRenderer;
 
@@ -29,16 +35,15 @@ public:
     void ProcessCursorInput(GLFWwindow* window, double xpos, double ypos);
 
 private:
-    std::unique_ptr<Font> m_Font;
+    std::unique_ptr<xc::Font> m_Font;
     std::unique_ptr<TextRenderer> m_TextRenderer;
     std::unique_ptr<BoxRenderer> m_BoxRenderer;
     flecs::world m_World;
 
-    GLuint m_TextProgram;
+    std::unique_ptr<xc::ShaderProgram> m_TextProgram;
+    std::unique_ptr<xc::ShaderProgram> m_BoxProgram;
 
-    GLuint m_BoxProgram;
-
-    GLuint m_Program;
+    std::unique_ptr<xc::ShaderProgram> m_DemoProgram;
     GLuint m_PositionsBuffer;
     GLuint m_TextureUBuffer;
     GLuint m_IndicesBuffer;

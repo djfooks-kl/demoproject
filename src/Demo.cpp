@@ -14,13 +14,14 @@
 #include "CameraInputComponent.h"
 #include "CameraInputSystem.h"
 #include "CameraSystem.h"
-#include "Font.h"
-#include "GLFWLib.h"
+#include "Core/Font.h"
+#include "Core/GLFWLib.h"
+#include "Core/ShaderProgram.h"
 #include "GlobalComponent.h"
 #include "InputComponent.h"
 #include "InputSystem.h"
-#include "MouseTrailSystem.h"
 #include "MouseTrailComponent.h"
+#include "MouseTrailSystem.h"
 #include "TextRenderer.h"
 #include "WindowSizeComponent.h"
 #include "WindowSizeSystem.h"
@@ -37,57 +38,6 @@ namespace
     void WindowSizeCallback(GLFWwindow* /*window*/, int width, int height)
     {
         glViewport(0, 0, width, height);
-    }
-
-    GLuint CompileShader(GLenum type, const char* name, const char* path)
-    {
-        std::ifstream fileStream(path);
-        if (fileStream.fail())
-        {
-            printf("Error could not read file \"%s\"\n", path);
-            return 0;
-        }
-        std::stringstream buffer;
-        buffer << fileStream.rdbuf();
-        std::string string = buffer.str();
-        const char* cstring = string.c_str();
-        const GLint cstrLength = static_cast<GLint>(string.length());
-
-        GLuint shader = glCreateShader(type);
-        glShaderSource(shader, 1, &cstring, &cstrLength);
-        glCompileShader(shader);
-        GLint compiled;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-        if (!compiled)
-        {
-            std::array<char, 4096> infoBuffer;
-            GLsizei length;
-            glGetShaderInfoLog(shader, static_cast<GLsizei>(infoBuffer.size()), &length, infoBuffer.data());
-            printf("Error compiling shader \"%s\": %s\n", name, infoBuffer.data());
-            printf("%s\n", cstring);
-        }
-        return shader;
-    }
-
-    GLuint BuildShaderProgram(const char* name, const char* vertexPath, const char* fragmentPath)
-    {
-        const GLuint vs = CompileShader(GL_VERTEX_SHADER, "vertex", vertexPath);
-        const GLuint fs = CompileShader(GL_FRAGMENT_SHADER, "fragment", fragmentPath);
-        const GLuint program = glCreateProgram();
-        glAttachShader(program, vs);
-        glAttachShader(program, fs);
-        glLinkProgram(program);
-        GLint linked;
-        glGetProgramiv(program, GL_LINK_STATUS, &linked);
-        if (!linked)
-        {
-            std::array<char, 4096> buffer;
-            GLsizei length;
-            glGetProgramInfoLog(program, static_cast<GLsizei>(buffer.size()), &length, buffer.data());
-            printf("Error linking program \"%s\":\n%s\n", name, buffer.data());
-            return 0;
-        }
-        return program;
     }
 
     void SetTextureData(const double time)
@@ -110,8 +60,10 @@ Demo::~Demo()
     m_Font.reset();
     m_TextRenderer.reset();
 
-    glDeleteProgram(m_Program);
-    glDeleteProgram(m_TextProgram);
+    m_DemoProgram.reset();
+    m_TextProgram.reset();
+    m_BoxProgram.reset();
+
     glDeleteVertexArrays(1, &m_DemoVBO);
     glDeleteBuffers(1, &m_PositionsBuffer);
     glDeleteBuffers(1, &m_TextureUBuffer);
@@ -187,12 +139,12 @@ void Demo::Render(double time, float /*deltaTime*/)
     if (!camera)
         return;
 
-    glUseProgram(m_Program);
+    glUseProgram(m_DemoProgram->GetProgramId());
     glBindVertexArray(m_DemoVBO);
     glBindTexture(GL_TEXTURE_2D, m_Texture);
     SetTextureData(time);
 
-    GLint viewProjectionUniform = glGetUniformLocation(m_Program, "viewProjection");
+    GLint viewProjectionUniform = glGetUniformLocation(m_DemoProgram->GetProgramId(), "viewProjection");
     glUniformMatrix4fv(viewProjectionUniform, 1, GL_FALSE, glm::value_ptr(camera->m_ViewProjection));
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -209,7 +161,6 @@ void Demo::Render(double time, float /*deltaTime*/)
             m_BoxRenderer->AddBox(0.05f, p.m_Position, p.m_Color);
         }
     });
-    //m_BoxRenderer->AddBox(0.05f, camera->m_WorldMouse, glm::vec3(0.f, 0.f, 1.f));
     m_BoxRenderer->Draw(camera->m_ViewProjection);
 }
 
@@ -237,17 +188,21 @@ void Demo::Init(GLFWwindow* window)
 
     glfwSetWindowSizeCallback(window, WindowSizeCallback);
 
-    m_Program = BuildShaderProgram("Demo", DATA_DIR "/demovertex.glsl", DATA_DIR "/demofragment.glsl");
-    m_TextProgram = BuildShaderProgram("Text", DATA_DIR "/boxvertex.glsl", DATA_DIR "/textfragment.glsl");
-    m_BoxProgram = BuildShaderProgram("Box", DATA_DIR "/boxvertex.glsl", DATA_DIR "/boxfragment.glsl");
+    m_DemoProgram = std::make_unique<xc::ShaderProgram>(xc::ShaderProgramOptions{ .m_VertexPath = "demovertex.glsl", .m_FragmentPath = "demofragment.glsl" });
+    m_BoxProgram = std::make_unique<xc::ShaderProgram>(xc::ShaderProgramOptions{ .m_VertexPath = "boxvertex.glsl", .m_FragmentPath = "boxfragment.glsl" });
+    m_TextProgram = std::make_unique<xc::ShaderProgram>(xc::ShaderProgramOptions{ .m_VertexPath = "boxvertex.glsl", .m_FragmentPath = "textfragment.glsl" });
 
-    m_Font = std::make_unique<Font>();
+    m_DemoProgram->TryLoadAndOutputError();
+    m_BoxProgram->TryLoadAndOutputError();
+    m_TextProgram->TryLoadAndOutputError();
+
+    m_Font = std::make_unique<xc::Font>();
     m_Font->Load(DATA_DIR "/sourcecodepro-medium.png", DATA_DIR "/sourcecodepro-medium.json");
 
-    m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, m_TextProgram);
+    m_TextRenderer = std::make_unique<TextRenderer>(*m_Font, *m_TextProgram);
     m_TextRenderer->AddString(m_Text, m_FontSize, m_Position.x, m_Position.y, m_Color);
 
-    m_BoxRenderer = std::make_unique<BoxRenderer>(m_BoxProgram);
+    m_BoxRenderer = std::make_unique<BoxRenderer>(*m_BoxProgram);
 
     glGenTextures(1, &m_Texture);
     glBindTexture(GL_TEXTURE_2D, m_Texture);

@@ -7,11 +7,16 @@
 
 typedef unsigned int GLuint;
 
-struct Font;
+namespace xc
+{
+    struct Font;
+
+    class ShaderProgram;
+}
 
 struct TextRenderer
 {
-    TextRenderer(const Font& font, GLuint program);
+    TextRenderer(const xc::Font& font, const xc::ShaderProgram& program);
     ~TextRenderer();
 
     void Draw(const glm::mat4& viewProjection);
@@ -32,8 +37,8 @@ private:
         float y,
         const glm::vec3& color);
 
-    const Font& m_Font;
-    GLuint m_Program = 0;
+    const xc::Font& m_Font;
+    const xc::ShaderProgram& m_Program;
 
     std::vector<float> m_Positions;
     std::vector<float> m_TextureUV;

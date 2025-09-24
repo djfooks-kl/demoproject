@@ -2,8 +2,8 @@
 
 #include <flecs/flecs.h>
 
+#include "Core/GLFWLib.h"
 #include "WindowSizeComponent.h"
-#include "GLFWLib.h"
 
 void window_size_system::Update(flecs::world& world, GLFWwindow* window)
 {

@@ -8,7 +8,7 @@
 #include <ImGui/backends/imgui_impl_opengl3.h>
 #include <ImGui/imgui.h>
 
-#include "GLFWLib.h"
+#include "Core/GLFWLib.h"
 
 namespace
 {
